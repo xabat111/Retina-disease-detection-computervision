@@ -1,0 +1,63 @@
+section,model_or_config,split,threshold_rule,threshold,AUC,recall,specificity,precision,accuracy,F1,TN,FP,FN,TP,val_FN_FP,spec_at_FN_lt_FP_val,source
+05_recall_stages,"Referencia, umbral 0.5",val,"Referencia, umbral 0.5",0.5,0.9375110613,0.837944664,0.8955223881,0.9680365297,0.85,0.8983050847,120,14,82,424,,,artifacts/recall/final_summary.json
+05_recall_stages,"Referencia, umbral Youden (val)",val,"Referencia, umbral Youden (val)",0.5446828604,0.9375110613,0.8241106719,0.947761194,0.983490566,0.85,0.8967741935,127,7,89,417,,,artifacts/recall/final_summary.json
+05_recall_stages,Etapa 1: referencia + umbral val (recall objetivo),val,Etapa 1: referencia + umbral val (recall objetivo),0.3649672866,0.9375110613,0.9110671937,0.7537313433,0.9331983806,0.878125,0.922,101,33,45,461,,,artifacts/recall/final_summary.json
+05_recall_stages,FINAL: D: ensemble + TTA + umbral val,val,FINAL: D: ensemble + TTA + umbral val,0.3992585186,0.9439856056,0.9110671937,0.776119403,0.9389002037,0.8828125,0.924774323,104,30,45,461,,,artifacts/recall/final_summary.json
+05_recall_stages,Variante sin margen (recall val >= 0.90),val,Variante sin margen (recall val >= 0.90),0.4161689412,0.9439856056,0.9011857708,0.8134328358,0.948024948,0.8828125,0.9240121581,109,25,50,456,,,artifacts/recall/final_summary.json
+05_recall_stages,"Referencia, umbral 0.5",test,"Referencia, umbral 0.5",0.5,0.9676862722,0.8675889328,0.9552238806,0.9865168539,0.8859375,0.9232386961,128,6,67,439,,,artifacts/recall/final_summary.json
+05_recall_stages,"Referencia, umbral Youden (val)",test,"Referencia, umbral Youden (val)",0.5446828604,0.9676862722,0.8498023715,0.9626865672,0.9885057471,0.8734375,0.9139213603,129,5,76,430,,,artifacts/recall/final_summary.json
+05_recall_stages,Etapa 1: referencia + umbral val (recall objetivo),test,Etapa 1: referencia + umbral val (recall objetivo),0.3649672866,0.9676862722,0.9229249012,0.8656716418,0.9628865979,0.9109375,0.9424823411,116,18,39,467,,,artifacts/recall/final_summary.json
+05_recall_stages,FINAL: D: ensemble + TTA + umbral val,test,FINAL: D: ensemble + TTA + umbral val,0.3992585186,0.9706359507,0.9288537549,0.8805970149,0.9670781893,0.91875,0.9475806452,118,16,36,470,,,artifacts/recall/final_summary.json
+05_recall_stages,Variante sin margen (recall val >= 0.90),test,Variante sin margen (recall val >= 0.90),0.4161689412,0.9706359507,0.9130434783,0.8880597015,0.9685534591,0.9078125,0.9399796541,119,15,44,462,,,artifacts/recall/final_summary.json
+06_recall_focus_training,ResNet-152 recall-focus (control),val,checkpoint selection (spec@FN<FP),,0.937348829,,,,,,,,,,,0.7173552593,artifacts/recall_focus/summary.json
+06_recall_focus_training,ResNet-152 recall-focus (reweight),val,checkpoint selection (spec@FN<FP),,0.937348829,,,,,,,,,,,0.7173552593,artifacts/recall_focus/summary.json
+06_recall_focus_training,ResNet-152 recall-focus (recallloss),val,checkpoint selection (spec@FN<FP),,0.9352988024,,,,,,,,,,,0.7173532093,artifacts/recall_focus/summary.json
+06_recall_focus_training,ResNet-152 recall-focus (both),val,checkpoint selection (spec@FN<FP),,0.9352988024,,,,,,,,,,,0.7173532093,artifacts/recall_focus/summary.json
+06_ensemble_tta,Anterior (05): 4 ResNet-152 + TTA,val,recall val >= 0.91  [= FINAL de 05],0.3992585186,0.9439856056,0.9110671937,0.776119403,0.9389002037,0.8828125,0.924774323,104,30,45,461,,,artifacts/recall_focus/summary.json
+06_ensemble_tta,Anterior (05): 4 ResNet-152 + TTA,val,FN < FP (90 % bootstrap val)  [solo umbral],0.3525,0.9439856056,0.9367588933,0.671641791,0.9150579151,0.88125,0.92578125,90,44,32,474,,,artifacts/recall_focus/summary.json
+06_ensemble_tta,Ensemble elegido + TTA,val,recall val >= 0.91,0.4025290295,0.9454014512,0.9110671937,0.7611940299,0.9350912779,0.8796875,0.9229229229,102,32,45,461,,,artifacts/recall_focus/summary.json
+06_ensemble_tta,Ensemble elegido + TTA,val,FN < FP (90 % bootstrap val)  [NUEVO],0.3475,0.9454014512,0.942687747,0.6641791045,0.9137931034,0.884375,0.9280155642,89,45,29,477,,,artifacts/recall_focus/summary.json
+06_ensemble_tta,Anterior (05): 4 ResNet-152 + TTA,test,recall val >= 0.91  [= FINAL de 05],0.3992585186,0.9706359507,0.9288537549,0.8805970149,0.9670781893,0.91875,0.9475806452,118,16,36,470,,,artifacts/recall_focus/summary.json
+06_ensemble_tta,Anterior (05): 4 ResNet-152 + TTA,test,FN < FP (90 % bootstrap val)  [solo umbral],0.3525,0.9706359507,0.9387351779,0.8432835821,0.9576612903,0.91875,0.9481037924,113,21,31,475,,,artifacts/recall_focus/summary.json
+06_ensemble_tta,Ensemble elegido + TTA,test,recall val >= 0.91,0.4025290295,0.9723467642,0.9308300395,0.8880597015,0.9691358025,0.921875,0.9495967742,119,15,35,471,,,artifacts/recall_focus/summary.json
+06_ensemble_tta,Ensemble elegido + TTA,test,FN < FP (90 % bootstrap val)  [NUEVO],0.3475,0.9723467642,0.9446640316,0.8358208955,0.956,0.921875,0.9502982107,112,22,28,478,,,artifacts/recall_focus/summary.json
+07_individual_no_tta,ResNet-152 optuna nocrop (ref.),test,Youden (validation),0.5446828604,0.9676862722,0.8498023715,0.9626865672,0.9885057471,0.8734375,0.9139213603,129,5,76,430,89 / 7,,artifacts/model_zoo_recall/summary.json
+07_individual_no_tta,ResNet-152 optuna nocrop (ref.),val,Youden (validation),0.5446828604,0.9375110613,,,,,,,,,,89 / 7,,artifacts/model_zoo_recall/summary.json
+07_individual_no_tta,DenseNet-121,test,Youden (validation),0.666149497,0.9601498437,0.8636363636,0.8805970149,0.9646799117,0.8671875,0.9113660063,118,16,69,437,56 / 17,,artifacts/model_zoo_recall/summary.json
+07_individual_no_tta,DenseNet-121,val,Youden (validation),0.666149497,0.9392366232,,,,,,,,,,56 / 17,,artifacts/model_zoo_recall/summary.json
+07_individual_no_tta,ConvNeXt-Tiny,test,Youden (validation),0.6184402108,0.9588667335,0.7964426877,0.9776119403,0.9926108374,0.834375,0.8837719298,131,3,103,403,96 / 3,,artifacts/model_zoo_recall/summary.json
+07_individual_no_tta,ConvNeXt-Tiny,val,Youden (validation),0.6184402108,0.9461093741,,,,,,,,,,96 / 3,,artifacts/model_zoo_recall/summary.json
+07_individual_no_tta,EfficientNet-B0,test,Youden (validation),0.550719142,0.9502831691,0.8675889328,0.9104477612,0.9733924612,0.8765625,0.9174503657,122,12,67,439,59 / 16,,artifacts/model_zoo_recall/summary.json
+07_individual_no_tta,EfficientNet-B0,val,Youden (validation),0.550719142,0.9388089198,,,,,,,,,,59 / 16,,artifacts/model_zoo_recall/summary.json
+07_individual_no_tta,ResNet-50,test,Youden (validation),0.5717486739,0.9502094272,0.8754940711,0.9104477612,0.9736263736,0.8828125,0.9219562955,122,12,63,443,70 / 19,,artifacts/model_zoo_recall/summary.json
+07_individual_no_tta,ResNet-50,val,Youden (validation),0.5717486739,0.9242522565,,,,,,,,,,70 / 19,,artifacts/model_zoo_recall/summary.json
+07_zoo_training_checkpoint,ResNet-50,val,checkpoint selection (spec@FN<FP),,0.9243,,,,,,,,,,,0.695,artifacts/logs/nb07_exec.out
+07_zoo_training_checkpoint,DenseNet-121,val,checkpoint selection (spec@FN<FP),,0.9392,,,,,,,,,,,0.7248,artifacts/logs/nb07_exec.out
+07_zoo_training_checkpoint,EfficientNet-B0,val,checkpoint selection (spec@FN<FP),,0.9388,,,,,,,,,,,0.7099,artifacts/logs/nb07_exec.out
+07_zoo_training_checkpoint,ConvNeXt-Tiny,val,checkpoint selection (spec@FN<FP),,0.9461,,,,,,,,,,,0.7472,artifacts/logs/nb07_exec.out
+07_individual_tta,ResNet-152 ajustado (05),test,FN < FP (90 % bootstrap val),0.31,0.9679369949,0.9466403162,0.8059701493,0.9485148515,0.9171875,0.9475766568,108,26,27,479,,,artifacts/logs/individual_tta_aucs.json
+07_individual_tta,ResNet-152 recall-focus (06: control),test,FN < FP (90 % bootstrap val),0.335,0.9666096395,0.9584980237,0.7089552239,0.9255725191,0.90625,0.9417475728,95,39,21,485,,,artifacts/logs/individual_tta_aucs.json
+07_individual_tta,ResNet-50 (07),test,FN < FP (90 % bootstrap val),0.515,0.9468172969,0.942687747,0.7462686567,0.9334637965,0.9015625,0.9380530973,100,34,29,477,,,artifacts/logs/individual_tta_aucs.json
+07_individual_tta,DenseNet-121 (07),test,FN < FP (90 % bootstrap val),0.38,0.9670520913,0.9505928854,0.8059701493,0.9487179487,0.9203125,0.9496544916,108,26,25,481,,,artifacts/logs/individual_tta_aucs.json
+07_individual_tta,EfficientNet-B0 (07),test,FN < FP (90 % bootstrap val),0.463,0.9510205888,0.9387351779,0.7910447761,0.944333996,0.9078125,0.9415262636,106,28,31,475,,,artifacts/logs/individual_tta_aucs.json
+07_individual_tta,ConvNeXt-Tiny (07),test,FN < FP (90 % bootstrap val),0.482,0.9579670816,0.9466403162,0.8208955224,0.9522862823,0.9203125,0.9494549058,110,24,27,479,,,artifacts/logs/individual_tta_aucs.json
+07_ensemble_tta,Anterior (05): 4 ResNet-152,val,recall val >= 0.91,0.3992585186,0.9439856056,0.9110671937,0.776119403,0.9389002037,0.8828125,0.924774323,104,30,45,461,,,artifacts/model_zoo_recall/summary.json
+07_ensemble_tta,Anterior (05): 4 ResNet-152,val,FN < FP (90 % bootstrap val),0.3525,0.9439856056,0.9367588933,0.671641791,0.9150579151,0.88125,0.92578125,90,44,32,474,,,artifacts/model_zoo_recall/summary.json
+07_ensemble_tta,Mejor de 06,val,recall val >= 0.91,0.4025290295,0.9454014512,0.9110671937,0.7611940299,0.9350912779,0.8796875,0.9229229229,102,32,45,461,,,artifacts/model_zoo_recall/summary.json
+07_ensemble_tta,Mejor de 06,val,FN < FP (90 % bootstrap val),0.3475,0.9454014512,0.942687747,0.6641791045,0.9137931034,0.884375,0.9280155642,89,45,29,477,,,artifacts/model_zoo_recall/summary.json
+07_ensemble_tta,Zoo: 4 modelos nuevos,val,recall val >= 0.91,0.5204773378,0.9490295558,0.9110671937,0.7835820896,0.9408163265,0.884375,0.9257028112,105,29,45,461,,,artifacts/model_zoo_recall/summary.json
+07_ensemble_tta,Zoo: 4 modelos nuevos,val,FN < FP (90 % bootstrap val),0.4625,0.9490295558,0.9407114625,0.6865671642,0.9189189189,0.8875,0.9296875,92,42,30,476,,,artifacts/model_zoo_recall/summary.json
+07_ensemble_tta,4 nuevos + ResNet-152 recall-focus,val,recall val >= 0.91,0.5029817596,0.9504748982,0.9110671937,0.8059701493,0.9466119097,0.8890625,0.9284994965,108,26,45,461,,,artifacts/model_zoo_recall/summary.json
+07_ensemble_tta,4 nuevos + ResNet-152 recall-focus,val,FN < FP (90 % bootstrap val),0.4475,0.9504748982,0.942687747,0.6940298507,0.9208494208,0.890625,0.931640625,93,41,29,477,,,artifacts/model_zoo_recall/summary.json
+07_ensemble_tta,Subconjunto elegido por AUC val,val,recall val >= 0.91,0.4713077073,0.9492360333,0.9110671937,0.8208955224,0.9505154639,0.8921875,0.9303733602,110,24,45,461,,,artifacts/model_zoo_recall/summary.json
+07_ensemble_tta,Subconjunto elegido por AUC val,val,FN < FP (90 % bootstrap val),0.395,0.9492360333,0.942687747,0.6791044776,0.9173076923,0.8875,0.9298245614,91,43,29,477,,,artifacts/model_zoo_recall/summary.json
+07_ensemble_tta,Anterior (05): 4 ResNet-152,test,recall val >= 0.91,0.3992585186,0.9706359507,0.9288537549,0.8805970149,0.9670781893,0.91875,0.9475806452,118,16,36,470,,,artifacts/model_zoo_recall/summary.json
+07_ensemble_tta,Anterior (05): 4 ResNet-152,test,FN < FP (90 % bootstrap val),0.3525,0.9706359507,0.9387351779,0.8432835821,0.9576612903,0.91875,0.9481037924,113,21,31,475,,,artifacts/model_zoo_recall/summary.json
+07_ensemble_tta,Mejor de 06,test,recall val >= 0.91,0.4025290295,0.9723467642,0.9308300395,0.8880597015,0.9691358025,0.921875,0.9495967742,119,15,35,471,,,artifacts/model_zoo_recall/summary.json
+07_ensemble_tta,Mejor de 06,test,FN < FP (90 % bootstrap val),0.3475,0.9723467642,0.9446640316,0.8358208955,0.956,0.921875,0.9502982107,112,22,28,478,,,artifacts/model_zoo_recall/summary.json
+07_ensemble_tta,Zoo: 4 modelos nuevos,test,recall val >= 0.91,0.5204773378,0.9713733703,0.9249011858,0.8955223881,0.9709543568,0.91875,0.9473684211,120,14,38,468,,,artifacts/model_zoo_recall/summary.json
+07_ensemble_tta,Zoo: 4 modelos nuevos,test,FN < FP (90 % bootstrap val),0.4625,0.9713733703,0.95256917,0.8059701493,0.9488188976,0.921875,0.9506903353,108,26,24,482,,,artifacts/model_zoo_recall/summary.json
+07_ensemble_tta,4 nuevos + ResNet-152 recall-focus,test,recall val >= 0.91,0.5029817596,0.9729366999,0.9288537549,0.8955223881,0.9710743802,0.921875,0.9494949495,120,14,36,470,,,artifacts/model_zoo_recall/summary.json
+07_ensemble_tta,4 nuevos + ResNet-152 recall-focus,test,FN < FP (90 % bootstrap val),0.4475,0.9729366999,0.9565217391,0.8134328358,0.9508840864,0.9265625,0.9536945813,109,25,22,484,,,artifacts/model_zoo_recall/summary.json
+07_ensemble_tta,Subconjunto elegido por AUC val,test,recall val >= 0.91,0.4713077073,0.9731431774,0.9169960474,0.9104477612,0.974789916,0.915625,0.9450101833,122,12,42,464,,,artifacts/model_zoo_recall/summary.json
+07_ensemble_tta,Subconjunto elegido por AUC val,test,FN < FP (90 % bootstrap val),0.395,0.9731431774,0.9505928854,0.8059701493,0.9487179487,0.9203125,0.9496544916,108,26,25,481,,,artifacts/model_zoo_recall/summary.json

@@ -1,0 +1,19 @@
+{
+  "best_params": {
+    "learning_rate": 0.000462258900102083,
+    "weight_decay": 7.068974950624607e-06,
+    "focal_gamma": 1.3636499344142012,
+    "focal_alpha": 0.2600427059120603,
+    "batch_size": 16,
+    "unfreeze_layer3": true,
+    "lr_scheduler": "plateau"
+  },
+  "best_val_auc_reduced_regime": 0.9431744439856055,
+  "best_trial_number": 2,
+  "search_regime": {
+    "image_size": 160,
+    "train_fraction": 0.5,
+    "epochs_per_trial": 4,
+    "n_trials": 12
+  }
+}

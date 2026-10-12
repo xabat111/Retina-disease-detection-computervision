@@ -1,0 +1,363 @@
+{
+  "method": "umbral recall-objetivo elegido en validación + ensemble + TTA",
+  "chosen_variant": "D: ensemble + TTA",
+  "ensemble_members": [
+    "ajustado_nocrop",
+    "baseline_nocrop",
+    "ajustado_original",
+    "baseline_original"
+  ],
+  "member_preprocessing": {
+    "ajustado_nocrop": "letterbox",
+    "baseline_nocrop": "letterbox",
+    "ajustado_original": "random_crop",
+    "baseline_original": "random_crop"
+  },
+  "tta_views": [
+    "identity",
+    "hflip",
+    "rotate_+10",
+    "rotate_-10"
+  ],
+  "target_recall": 0.9,
+  "validation_recall_margin": 0.01,
+  "decision_threshold": 0.39925851859152317,
+  "threshold_selected_on": "validation only",
+  "bootstrap": {
+    "resamples": 1000,
+    "confidence_level": 0.95,
+    "seed": 42
+  },
+  "val_metrics": {
+    "Referencia, umbral 0.5": {
+      "threshold": 0.5,
+      "recall": 0.8379446640316206,
+      "specificity": 0.8955223880597015,
+      "precision": 0.9680365296803652,
+      "accuracy": 0.85,
+      "f1": 0.8983050847457628,
+      "auc": 0.937511061294319,
+      "confusion_matrix_TN_FP_FN_TP": [
+        120,
+        14,
+        82,
+        424
+      ]
+    },
+    "Referencia, umbral Youden (val)": {
+      "threshold": 0.5446828603744507,
+      "recall": 0.8241106719367589,
+      "specificity": 0.9477611940298507,
+      "precision": 0.9834905660377359,
+      "accuracy": 0.85,
+      "f1": 0.896774193548387,
+      "auc": 0.937511061294319,
+      "confusion_matrix_TN_FP_FN_TP": [
+        127,
+        7,
+        89,
+        417
+      ]
+    },
+    "Etapa 1: referencia + umbral val (recall objetivo)": {
+      "threshold": 0.3649672865867615,
+      "recall": 0.9110671936758893,
+      "specificity": 0.753731343283582,
+      "precision": 0.9331983805668016,
+      "accuracy": 0.878125,
+      "f1": 0.922,
+      "auc": 0.937511061294319,
+      "confusion_matrix_TN_FP_FN_TP": [
+        101,
+        33,
+        45,
+        461
+      ]
+    },
+    "FINAL: D: ensemble + TTA + umbral val": {
+      "threshold": 0.39925851859152317,
+      "recall": 0.9110671936758893,
+      "specificity": 0.7761194029850746,
+      "precision": 0.9389002036659878,
+      "accuracy": 0.8828125,
+      "f1": 0.9247743229689067,
+      "auc": 0.9439856055689929,
+      "confusion_matrix_TN_FP_FN_TP": [
+        104,
+        30,
+        45,
+        461
+      ]
+    },
+    "Variante sin margen (recall val >= 0.90)": {
+      "threshold": 0.41616894118487835,
+      "recall": 0.9011857707509882,
+      "specificity": 0.8134328358208955,
+      "precision": 0.9480249480249481,
+      "accuracy": 0.8828125,
+      "f1": 0.9240121580547113,
+      "auc": 0.9439856055689929,
+      "confusion_matrix_TN_FP_FN_TP": [
+        109,
+        25,
+        50,
+        456
+      ]
+    }
+  },
+  "test_metrics": {
+    "Referencia, umbral 0.5": {
+      "threshold": 0.5,
+      "recall": 0.8675889328063241,
+      "specificity": 0.9552238805970149,
+      "precision": 0.9865168539325843,
+      "accuracy": 0.8859375,
+      "f1": 0.9232386961093586,
+      "auc": 0.9676862721963306,
+      "confidence_intervals_95": {
+        "recall": [
+          0.8355634210079265,
+          0.8932357435043412
+        ],
+        "specificity": [
+          0.9126984126984127,
+          0.9862092583845063
+        ],
+        "precision": [
+          0.9752252252252253,
+          0.9956147517486527
+        ],
+        "accuracy": [
+          0.859375,
+          0.9078125
+        ],
+        "f1": [
+          0.9040460472363457,
+          0.9386649965565826
+        ],
+        "auc": [
+          0.9526545633384117,
+          0.9783570867236584
+        ]
+      },
+      "confusion_matrix_TN_FP_FN_TP": [
+        128,
+        6,
+        67,
+        439
+      ]
+    },
+    "Referencia, umbral Youden (val)": {
+      "threshold": 0.5446828603744507,
+      "recall": 0.849802371541502,
+      "specificity": 0.9626865671641791,
+      "precision": 0.9885057471264368,
+      "accuracy": 0.8734375,
+      "f1": 0.9139213602550478,
+      "auc": 0.9676862721963306,
+      "confidence_intervals_95": {
+        "recall": [
+          0.8166803825447196,
+          0.8784387790901649
+        ],
+        "specificity": [
+          0.9237271962737741,
+          0.9924839877471456
+        ],
+        "precision": [
+          0.9772701328352014,
+          0.9976961167716568
+        ],
+        "accuracy": [
+          0.8453125,
+          0.8984375
+        ],
+        "f1": [
+          0.8937024393547046,
+          0.9315068493150684
+        ],
+        "auc": [
+          0.9526545633384117,
+          0.9783570867236584
+        ]
+      },
+      "confusion_matrix_TN_FP_FN_TP": [
+        129,
+        5,
+        76,
+        430
+      ]
+    },
+    "Etapa 1: referencia + umbral val (recall objetivo)": {
+      "threshold": 0.3649672865867615,
+      "recall": 0.9229249011857708,
+      "specificity": 0.8656716417910447,
+      "precision": 0.9628865979381444,
+      "accuracy": 0.9109375,
+      "f1": 0.9424823410696267,
+      "auc": 0.9676862721963306,
+      "confidence_intervals_95": {
+        "recall": [
+          0.8976240348597202,
+          0.9443340914207652
+        ],
+        "specificity": [
+          0.8067226890756303,
+          0.9160318688944643
+        ],
+        "precision": [
+          0.9456038437584976,
+          0.9773219162132983
+        ],
+        "accuracy": [
+          0.8875,
+          0.93125
+        ],
+        "f1": [
+          0.9267782426778243,
+          0.9560136325589291
+        ],
+        "auc": [
+          0.9526545633384117,
+          0.9783570867236584
+        ]
+      },
+      "confusion_matrix_TN_FP_FN_TP": [
+        116,
+        18,
+        39,
+        467
+      ]
+    },
+    "FINAL: D: ensemble + TTA + umbral val": {
+      "threshold": 0.39925851859152317,
+      "recall": 0.9288537549407114,
+      "specificity": 0.8805970149253731,
+      "precision": 0.9670781893004116,
+      "accuracy": 0.91875,
+      "f1": 0.9475806451612904,
+      "auc": 0.9706359506813756,
+      "confidence_intervals_95": {
+        "recall": [
+          0.9063135482665026,
+          0.9506903353057199
+        ],
+        "specificity": [
+          0.8244050291872475,
+          0.9313029384084492
+        ],
+        "precision": [
+          0.9504106565371389,
+          0.9814078223904152
+        ],
+        "accuracy": [
+          0.896875,
+          0.9390625
+        ],
+        "f1": [
+          0.9329111548481924,
+          0.9610162203448135
+        ],
+        "auc": [
+          0.9577505467025736,
+          0.9809840379306826
+        ]
+      },
+      "confusion_matrix_TN_FP_FN_TP": [
+        118,
+        16,
+        36,
+        470
+      ]
+    },
+    "Variante sin margen (recall val >= 0.90)": {
+      "threshold": 0.41616894118487835,
+      "recall": 0.9130434782608695,
+      "specificity": 0.8880597014925373,
+      "precision": 0.9685534591194969,
+      "accuracy": 0.9078125,
+      "f1": 0.9399796541200407,
+      "auc": 0.9706359506813756,
+      "confidence_intervals_95": {
+        "recall": [
+          0.8879789959427169,
+          0.9364192418852824
+        ],
+        "specificity": [
+          0.8320610687022901,
+          0.9360154929577466
+        ],
+        "precision": [
+          0.9520829929193899,
+          0.9821126988089818
+        ],
+        "accuracy": [
+          0.884375,
+          0.9296875
+        ],
+        "f1": [
+          0.9240496710399754,
+          0.9536678351080414
+        ],
+        "auc": [
+          0.9577505467025736,
+          0.9809840379306826
+        ]
+      },
+      "confusion_matrix_TN_FP_FN_TP": [
+        119,
+        15,
+        44,
+        462
+      ]
+    }
+  },
+  "paired_difference_final_minus_reference_0.5_test": {
+    "recall": {
+      "difference": 0.06126482213438733,
+      "ci95": [
+        0.04276238705973942,
+        0.08349921348734322
+      ]
+    },
+    "specificity": {
+      "difference": -0.07462686567164178,
+      "ci95": [
+        -0.12214152342248337,
+        -0.036476798748696644
+      ]
+    },
+    "precision": {
+      "difference": -0.019438664632172697,
+      "ci95": [
+        -0.033029765786411966,
+        -0.008783582349346196
+      ]
+    },
+    "accuracy": {
+      "difference": 0.03281249999999991,
+      "ci95": [
+        0.014062499999999978,
+        0.05312499999999998
+      ]
+    },
+    "f1": {
+      "difference": 0.024341949051931766,
+      "ci95": [
+        0.011864766194459296,
+        0.03886237694024749
+      ]
+    },
+    "auc": {
+      "difference": 0.0029496784850450153,
+      "ci95": [
+        -0.0021070499936628284,
+        0.008555915955201263
+      ]
+    }
+  },
+  "false_negatives_test": 36,
+  "optuna_stage_run": false,
+  "optuna_stage_needed": false,
+  "notes": "Etapa 3 (Optuna + reentrenamiento) no ejecutada en este notebook; ver optuna_stage_needed."
+}

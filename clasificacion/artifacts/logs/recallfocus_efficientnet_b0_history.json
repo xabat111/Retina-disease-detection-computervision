@@ -1,0 +1,21 @@
+[
+  {
+    "epoch": 1,
+    "train_loss": 0.06798871997743845,
+    "val_loss": 0.050646109972149134,
+    "val_auc": 0.9388089198277388,
+    "val_f1": 0.9273631840796019,
+    "val_accuracy": 0.8859375,
+    "val_best_f2": 0.9593465045592705,
+    "val_recall_at_spec_85": 0.9031620553359684,
+    "val_spec_at_fn_lt_fp": 0.7098940328004248,
+    "learning_rate": NaN,
+    "epoch_seconds": NaN,
+    "n_hard_positives": 0,
+    "n_hard_negatives": 0,
+    "mean_positive_weight": NaN,
+    "mean_negative_weight": NaN,
+    "capped_fraction": NaN,
+    "from_checkpoint_metadata": true
+  }
+]

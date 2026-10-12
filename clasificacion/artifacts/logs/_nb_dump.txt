@@ -1,0 +1,1884 @@
+
+########## notebooks\01_build_datasets.ipynb
+--- [0] markdown
+# RFMiD — construir DataFrames (train / val / test)
+
+Objetivo: crear tres `pandas.DataFrame` listos para un `Dataset` de PyTorch, con:
+- `image_path`: ruta a la foto de fondo de ojo (`.png`)
+- `disease_risk`: etiqueta binaria (`Disease_Risk` del CSV)
+
+Estructura del dataset:
+- `Training_Set/Training_Set/RFMiD_Training_Labels.csv` + carpeta `Training/`
+- `Evaluation_Set/Evaluation_Set/RFMiD_Validation_Labels.csv` + carpeta `Validation/`
+- `Test_Set/Test_Set/RFMiD_Testing_Labels.csv` + carpeta `Test/`
+--- [1] code
+from pathlib import Path
+
+import pandas as pd
+
+# Raíz del proyecto (un nivel por encima de notebooks/)
+PROJECT_ROOT = Path("..").resolve()
+
+SPLIT_CONFIG = {
+    "train": {
+        "labels_csv": PROJECT_ROOT / "Training_Set" / "Training_Set" / "RFMiD_Training_Labels.csv",
+        "images_dir": PROJECT_ROOT / "Training_Set" / "Training_Set" / "Training",
+    },
+    "validation": {
+        "labels_csv": PROJECT_ROOT / "Evaluation_Set" / "Evaluation_Set" / "RFMiD_Validation_Labels.csv",
+        "images_dir": PROJECT_ROOT / "Evaluation_Set" / "Evaluation_Set" / "Validation",
+    },
+    "test": {
+        "labels_csv": PROJECT_ROOT / "Test_Set" / "Test_Set" / "RFMiD_Testing_Labels.csv",
+        "images_dir": PROJECT_ROOT / "Test_Set" / "Test_Set" / "Test",
+    },
+}
+
+IMAGE_EXTENSION = ".png"
+
+print("PROJECT_ROOT:", PROJECT_ROOT)
+for split_name, paths in SPLIT_CONFIG.items():
+    print(
+        f"{split_name}: csv={paths['labels_csv'].exists()}, "
+        f"images_dir={paths['images_dir'].exists()}"
+    )
+--- [2] markdown
+## Función para construir cada DataFrame
+
+Cada fila del CSV tiene un `ID` numérico; la imagen correspondiente es `{ID}.png` dentro de la carpeta del split.
+--- [3] code
+def build_split_dataframe(labels_csv: Path, images_dir: Path) -> pd.DataFrame:
+    """Carga etiquetas RFMiD y resuelve la ruta de cada imagen de fondo de ojo."""
+    labels = pd.read_csv(labels_csv)
+
+    image_paths = [
+        str(images_dir / f"{image_id}{IMAGE_EXTENSION}")
+        for image_id in labels["ID"]
+    ]
+
+    split_dataframe = pd.DataFrame(
+        {
+            "image_path": image_paths,
+            "disease_risk": labels["Disease_Risk"].astype(int),
+        }
+    )
+    return split_dataframe
+
+
+def count_missing_images(split_dataframe: pd.DataFrame) -> int:
+    """Cuenta rutas que no apuntan a un fichero existente."""
+    return sum(1 for path in split_dataframe["image_path"] if not Path(path).is_file())
+--- [4] markdown
+## Construir los tres DataFrames
+--- [5] code
+train_df = build_split_dataframe(**SPLIT_CONFIG["train"])
+validation_df = build_split_dataframe(**SPLIT_CONFIG["validation"])
+test_df = build_split_dataframe(**SPLIT_CONFIG["test"])
+
+datasets = {
+    "train": train_df,
+    "validation": validation_df,
+    "test": test_df,
+}
+
+for split_name, split_dataframe in datasets.items():
+    print(f"{split_name}: shape={split_dataframe.shape}")
+--- [6] markdown
+## Vista previa y balance de clases
+--- [7] code
+for split_name, split_dataframe in datasets.items():
+    print("=" * 60)
+    print(f"Split: {split_name}")
+    display(split_dataframe.head())
+
+    class_counts = split_dataframe["disease_risk"].value_counts().sort_index()
+    class_proportions = split_dataframe["disease_risk"].value_counts(normalize=True).sort_index()
+
+    print("Conteo Disease_Risk (0=sin riesgo, 1=con riesgo):")
+    print(class_counts.to_string())
+    print("Proporciones:")
+    print(class_proportions.round(3).to_string())
+--- [8] markdown
+## Verificación: ¿existen las imágenes?
+
+Comprobamos una muestra y el total de rutas faltantes por split.
+--- [9] code
+SAMPLE_SIZE = 10
+
+for split_name, split_dataframe in datasets.items():
+    sample_paths = split_dataframe["image_path"].head(SAMPLE_SIZE)
+    sample_ok = all(Path(path).is_file() for path in sample_paths)
+    missing_count = count_missing_images(split_dataframe)
+
+    print(f"{split_name}:")
+    print(f"  muestra de {SAMPLE_SIZE} IDs OK: {sample_ok}")
+    print(f"  imágenes faltantes: {missing_count} / {len(split_dataframe)}")
+    if missing_count > 0:
+        missing_examples = [
+            path for path in split_dataframe["image_path"]
+            if not Path(path).is_file()
+        ][:5]
+        print("  ejemplos faltantes:", missing_examples)
+
+print("\nListo: train_df, validation_df y test_df están disponibles en memoria.")
+
+########## notebooks\best_model\02.1_train_resnet152_nocrop.ipynb
+--- [0] markdown
+> **Variante _sin recorte aleatorio_ de `other_experiments/02.1_train_resnet152.ipynb`.**
+> Las entradas son siempre fondos de ojo **completos**: un `RandomResizedCrop(scale=(0.7, 1.0))` puede dejar fuera lesiones periféricas, el disco óptico o la mácula, y además deforma la proporción de la imagen. Aquí se sustituye por un **letterbox** (lado largo = `image_size`, relleno negro hasta cuadrado), aplicado **igual en train, val, test y Grad-CAM** (`TrainConfig.preprocessing = "letterbox"`).
+> Se reutilizan **los mismos hiperparámetros de Optuna** (`best_params.json`, encontrados con el recorte aleatorio) y las mismas épocas, de modo que la única diferencia con el original es el preprocesado. Los modelos originales (`best_resnet152_disease_risk.pt` y `..._optuna.pt`) **no se reentrenan ni se modifican**: se cargan y se evalúan con *su* preprocesado original. Si falta alguno (incluido el baseline nocrop de `02_train_resnet152_nocrop.ipynb`), se omite de la comparación con un aviso.
+> Salidas con sufijo `_nocrop`: checkpoint `best_resnet152_disease_risk_optuna_nocrop.pt`, historial `artifacts/logs/tuned_nocrop_history.json`, figuras `artifacts/figures/tuned_nocrop_*.png` y Grad-CAM en `artifacts/gradcam/nocrop/`.
+
+# RFMiD — ResNet-152 con los hiperparámetros de Optuna (Disease_Risk), sin RandomResizedCrop
+
+1. Carga los mejores hiperparámetros de `artifacts/optuna/best_params.json` (notebook `03`).
+2. Entrena el modelo final: `train_loss` y `val_loss` por época, *early stopping* y checkpoint por **`val_loss` mínima** (no por AUC) en un archivo **nuevo** (`best_resnet152_disease_risk_optuna_nocrop.pt`), sin tocar los anteriores.
+3. Evalúa en **test**; el umbral de decisión se elige **solo en validación** (índice de Youden) y se compara: baseline original, ajustado original, baseline nocrop y ajustado nocrop.
+4. Grad-CAM sobre el modelo ajustado nocrop.
+
+**Criterio de selección = `val_loss` (se minimiza).** El mejor checkpoint y el *early stopping* (paciencia 7) usan la pérdida focal de **validación** (`selection_metric="val_loss"`). Se descarta `train_loss` porque baja casi siempre con las épocas y elegiría la más sobreajustada; `val_loss` sí mide generalización. Como el scheduler ajustado de Optuna es `ReduceLROnPlateau`, en esta variante monitoriza también `val_loss` (modo `min`) para que LR, checkpoint y *early stopping* usen la misma señal (en el resto de notebooks sigue monitorizando el AUC). AUC, F1 y accuracy se siguen calculando y reportando como métricas de evaluación, y el umbral de decisión se sigue eligiendo solo en validación.
+
+**Nota de cómputo:** sin GPU (CPU, 4 hilos). Con `layer3` descongelado una época a 224 px tarda ~20 min, así que el entrenamiento final se limita a **10 épocas** (`EPOCHS_FINAL`), igual que en `other_experiments/02.1_train_resnet152.ipynb`.
+--- [1] code
+import json
+import os
+import sys
+from dataclasses import replace
+from pathlib import Path
+
+# Raíz del proyecto: se sube desde el directorio actual hasta encontrar src/ y requirements.txt
+# (funciona desde notebooks/, notebooks/best_model/ o notebooks/other_experiments/)
+PROJECT_ROOT = next(
+    directory
+    for directory in (Path.cwd().resolve(), *Path.cwd().resolve().parents)
+    if (directory / "src").is_dir() and (directory / "requirements.txt").is_file()
+)
+if str(PROJECT_ROOT) not in sys.path:
+    sys.path.insert(0, str(PROJECT_ROOT))
+os.environ.setdefault("TORCH_HOME", str(PROJECT_ROOT / "artifacts" / "torch_cache"))
+
+import matplotlib.pyplot as plt
+import pandas as pd
+from sklearn.metrics import classification_report
+
+from src.config import default_config
+from src.data import PREPROCESSING_LETTERBOX, PREPROCESSING_RANDOM_CROP, create_dataloaders
+from src.evaluate import (
+    collect_predictions,
+    compute_classification_metrics,
+    select_threshold_youden,
+)
+from src.explain import compute_gradcam_samples, plot_gradcam_grid
+from src.model import load_model
+from src.train import get_device, train_model
+from src.tuning import build_final_config
+
+device = get_device()
+print(f"device={device}")
+--- [2] markdown
+## 1. Hiperparámetros encontrados por Optuna
+--- [3] code
+EPOCHS_FINAL = 10  # igual que 02.1 (20 en el baseline); reducido por coste en CPU
+TUNED_CHECKPOINT_NAME = "best_resnet152_disease_risk_optuna.pt"  # original, solo se lee
+BASELINE_NOCROP_CHECKPOINT_NAME = "best_resnet152_disease_risk_nocrop.pt"  # de 02_..._nocrop
+TUNED_NOCROP_CHECKPOINT_NAME = "best_resnet152_disease_risk_optuna_nocrop.pt"
+
+best_params_payload = json.loads(
+    (PROJECT_ROOT / "artifacts" / "optuna" / "best_params.json").read_text(encoding="utf-8")
+)
+best_params = best_params_payload["best_params"]
+print(f"AUC de validación en la búsqueda (régimen reducido): {best_params_payload['best_val_auc_reduced_regime']:.4f}")
+pd.Series(best_params, name="valor").to_frame()
+--- [4] code
+# Configuraciones originales (preprocesado random_crop): solo para evaluar sus checkpoints
+baseline_config = default_config()
+tuned_config = build_final_config(baseline_config, best_params, TUNED_CHECKPOINT_NAME)
+tuned_config.epochs = EPOCHS_FINAL
+
+# Variantes nocrop: mismos hiperparámetros; cambian preprocesado, nombre del checkpoint y
+# criterio de selección (val_loss, a minimizar, en lugar de AUC). baseline_nocrop_config solo
+# se usa para cargar el checkpoint entrenado en 02_..._nocrop (con el mismo criterio).
+SELECTION_METRIC = "val_loss"
+baseline_nocrop_config = replace(
+    baseline_config,
+    preprocessing=PREPROCESSING_LETTERBOX,
+    best_checkpoint_name=BASELINE_NOCROP_CHECKPOINT_NAME,
+    selection_metric=SELECTION_METRIC,
+)
+tuned_nocrop_config = replace(
+    tuned_config,
+    preprocessing=PREPROCESSING_LETTERBOX,
+    best_checkpoint_name=TUNED_NOCROP_CHECKPOINT_NAME,
+    selection_metric=SELECTION_METRIC,
+)
+
+print(
+    f"epochs={tuned_nocrop_config.epochs}, batch_size={tuned_nocrop_config.batch_size}, "
+    f"lr={tuned_nocrop_config.learning_rate:.2e}, scheduler={tuned_nocrop_config.lr_scheduler}, "
+    f"unfreeze_layer3={tuned_nocrop_config.unfreeze_layer3}, image_size={tuned_nocrop_config.image_size}, "
+    f"preprocessing={tuned_nocrop_config.preprocessing}, selection_metric={tuned_nocrop_config.selection_metric}"
+)
+
+(
+    train_loader,
+    val_loader,
+    test_loader,
+    train_dataframe,
+    val_dataframe,
+    test_dataframe,
+) = create_dataloaders(tuned_nocrop_config)
+for name, dataframe in [("train", train_dataframe), ("val", val_dataframe), ("test", test_dataframe)]:
+    print(name, len(dataframe), dataframe["disease_risk"].value_counts().to_dict())
+
+# Loaders con el preprocesado ORIGINAL (resize cuadrado) para evaluar los modelos originales
+original_val_loader, original_test_loader = create_dataloaders(tuned_config)[1:3]
+--- [5] markdown
+## 2. Entrenamiento final
+
+Cada época imprime `train_loss` y `val_loss`; el mejor checkpoint y el *early stopping* se rigen por `val_loss` mínima. Si ya existe el checkpoint ajustado nocrop no se reentrena (el historial se recarga de `artifacts/logs/tuned_nocrop_history.json`).
+--- [6] code
+FORCE_RETRAIN = False
+
+tuned_checkpoint_path = tuned_nocrop_config.checkpoint_dir / tuned_nocrop_config.best_checkpoint_name
+history_path = PROJECT_ROOT / "artifacts" / "logs" / "tuned_nocrop_history.json"
+history_path.parent.mkdir(parents=True, exist_ok=True)
+
+if FORCE_RETRAIN or not (tuned_checkpoint_path.is_file() and history_path.is_file()):
+    training_history: list[dict] = []
+    train_model(train_loader, val_loader, tuned_nocrop_config, history=training_history)
+    history_path.write_text(json.dumps(training_history, indent=2), encoding="utf-8")
+else:
+    training_history = json.loads(history_path.read_text(encoding="utf-8"))
+    print(f"Checkpoint existente, se omite el entrenamiento: {tuned_checkpoint_path}")
+--- [7] code
+history_table = pd.DataFrame(training_history).set_index("epoch")
+figure, (loss_axis, auc_axis) = plt.subplots(1, 2, figsize=(12, 4))
+
+loss_axis.plot(history_table.index, history_table["train_loss"], marker="o", label="train_loss")
+loss_axis.plot(history_table.index, history_table["val_loss"], marker="o", label="val_loss")
+# Época elegida por el criterio de selección: val_loss mínima
+selected_epoch = history_table["val_loss"].idxmin()
+loss_axis.axvline(selected_epoch, color="gray", linestyle="--", label="mejor época (val_loss mín.)")
+loss_axis.set(title="Pérdida focal por época (nocrop)", xlabel="Época", ylabel="Loss")
+loss_axis.legend()
+
+auc_axis.plot(history_table.index, history_table["val_auc"], marker="o", color="tab:green")
+auc_axis.axvline(selected_epoch, color="gray", linestyle="--", label="época elegida (val_loss mín.)")
+auc_axis.set(title="AUC de validación por época (nocrop)", xlabel="Época", ylabel="AUC")
+auc_axis.legend()
+
+plt.tight_layout()
+figures_dir = PROJECT_ROOT / "artifacts" / "figures"
+figures_dir.mkdir(parents=True, exist_ok=True)
+plt.savefig(figures_dir / "tuned_nocrop_training_curves.png", dpi=110)
+plt.show()
+history_table.round(4)
+--- [8] markdown
+## 3. Evaluación: baseline vs ajustado, original vs nocrop
+
+Se calculan las probabilidades de cada modelo en val y test, **con el preprocesado con el que fue entrenado** (resize cuadrado para los originales, letterbox para los nocrop). El **umbral se elige en validación** (índice de Youden: maximiza TPR − FPR, más adecuado que F1 con 79 % de positivos) y se aplica sin cambios a test. Se incluye también el umbral fijo 0.5. El AUC no depende del umbral.
+--- [9] code
+# nombre del modelo -> config con la que se entrenó (fija checkpoint y preprocesado)
+model_configs = {
+    "baseline (original)": baseline_config,
+    "ajustado (original)": tuned_config,
+    "baseline nocrop": baseline_nocrop_config,
+    "ajustado nocrop": tuned_nocrop_config,
+}
+# Cada modelo se evalúa con loaders que usan SU preprocesado
+evaluation_loaders = {
+    PREPROCESSING_RANDOM_CROP: (original_val_loader, original_test_loader),
+    PREPROCESSING_LETTERBOX: (val_loader, test_loader),
+}
+TUNED_NOCROP_NAME = "ajustado nocrop"
+
+predictions = {}
+tuned_model = None
+for model_name, model_config in model_configs.items():
+    checkpoint_path = model_config.checkpoint_dir / model_config.best_checkpoint_name
+    if not checkpoint_path.is_file():
+        print(f"AVISO: no existe {checkpoint_path}; '{model_name}' se omite de la comparación.")
+        continue
+
+    model = load_model(checkpoint_path, model_config, device)
+    model_val_loader, model_test_loader = evaluation_loaders[model_config.preprocessing]
+    val_probabilities, val_labels, _ = collect_predictions(model, model_val_loader, device)
+    test_probabilities, test_labels, _ = collect_predictions(model, model_test_loader, device)
+    predictions[model_name] = {
+        "val_probabilities": val_probabilities,
+        "val_labels": val_labels,
+        "test_probabilities": test_probabilities,
+        "test_labels": test_labels,
+        # Umbral elegido SOLO con validación
+        "threshold": select_threshold_youden(val_probabilities, val_labels),
+    }
+    print(f"{model_name}: umbral (Youden, val) = {predictions[model_name]['threshold']:.3f}")
+
+    # Solo se conserva en memoria el modelo que se usará en Grad-CAM
+    if model_name == TUNED_NOCROP_NAME:
+        tuned_model = model
+    else:
+        del model
+--- [10] code
+comparison_rows = []
+for model_name, model_predictions in predictions.items():
+    for split_name in ("val", "test"):
+        probabilities = model_predictions[f"{split_name}_probabilities"]
+        labels = model_predictions[f"{split_name}_labels"]
+        for threshold_name, threshold in [("0.5", 0.5), ("val-Youden", model_predictions["threshold"])]:
+            metrics = compute_classification_metrics(probabilities, labels, threshold=threshold)
+            comparison_rows.append(
+                {
+                    "modelo": model_name,
+                    "split": split_name,
+                    "umbral": f"{threshold_name} ({threshold:.3f})",
+                    "AUC": metrics["auc"],
+                    "F1": metrics["f1"],
+                    "Accuracy": metrics["accuracy"],
+                    "matriz_confusion": metrics["confusion_matrix"],
+                }
+            )
+comparison_table = pd.DataFrame(comparison_rows)
+comparison_table.round(4)
+--- [11] code
+# Vista compacta del TEST (la comparación que importa), ordenada por umbral
+test_comparison = (
+    comparison_table[comparison_table["split"] == "test"]
+    .drop(columns="split")
+    .sort_values(["umbral", "modelo"])
+    .round(4)
+)
+test_comparison
+--- [12] code
+tuned_predictions = predictions[TUNED_NOCROP_NAME]
+tuned_threshold = tuned_predictions["threshold"]
+test_predicted_labels = (tuned_predictions["test_probabilities"] >= tuned_threshold).astype(int)
+
+print(f"Modelo ajustado nocrop, TEST, umbral={tuned_threshold:.3f} (elegido en validación)\n")
+print(
+    classification_report(
+        tuned_predictions["test_labels"].astype(int),
+        test_predicted_labels,
+        target_names=["sano (0)", "riesgo (1)"],
+        digits=4,
+    )
+)
+
+confusion = compute_classification_metrics(
+    tuned_predictions["test_probabilities"], tuned_predictions["test_labels"], tuned_threshold
+)["confusion_matrix"]
+figure, axis = plt.subplots(figsize=(4, 4))
+axis.imshow(confusion, cmap="Blues")
+for row in range(2):
+    for column in range(2):
+        axis.text(column, row, confusion[row][column], ha="center", va="center", fontsize=14)
+axis.set(
+    xticks=[0, 1], yticks=[0, 1],
+    xticklabels=["sano", "riesgo"], yticklabels=["sano", "riesgo"],
+    xlabel="Predicho", ylabel="Real", title="Matriz de confusión (test, ajustado nocrop)",
+)
+plt.tight_layout()
+plt.savefig(figures_dir / "tuned_nocrop_confusion_matrix_test.png", dpi=110)
+plt.show()
+--- [13] markdown
+## 4. Grad-CAM del modelo ajustado nocrop (test)
+
+Mismo método que en `02_train_resnet152_nocrop.ipynb` (`src/explain.py`, hooks sobre `layer4[-1]`) y con el mismo letterbox que el modelo (`preprocessing=tuned_nocrop_config.preprocessing`). Se usa el umbral elegido en validación para definir TP / TN / FP / FN; se muestran los cuatro ejemplos más confiados de cada grupo. Figuras en `artifacts/gradcam/nocrop/tuned_*.png`.
+--- [14] code
+GRADCAM_DIR = PROJECT_ROOT / "artifacts" / "gradcam" / "nocrop"
+
+gradcam_samples = compute_gradcam_samples(
+    tuned_model,
+    test_dataframe,
+    tuned_predictions["test_probabilities"],
+    tuned_predictions["test_labels"],
+    threshold=tuned_threshold,
+    image_size=tuned_nocrop_config.image_size,
+    examples_per_group=4,
+    preprocessing=tuned_nocrop_config.preprocessing,
+)
+group_titles = {
+    "TP": "Ajustado nocrop - verdaderos positivos (riesgo detectado)",
+    "TN": "Ajustado nocrop - verdaderos negativos (sano)",
+    "FP": "Ajustado nocrop - falsos positivos (sano predicho como riesgo)",
+    "FN": "Ajustado nocrop - falsos negativos (riesgo no detectado)",
+}
+for group, group_title in group_titles.items():
+    group_samples = [s for s in gradcam_samples if s["group"] == group]
+    figure = plot_gradcam_grid(
+        group_samples, title=group_title, save_path=GRADCAM_DIR / f"tuned_{group}.png"
+    )
+    if figure is not None:
+        plt.show()
+
+########## notebooks\best_model\02_train_resnet152_nocrop.ipynb
+--- [0] markdown
+> **Variante _sin recorte aleatorio_ de `other_experiments/02_train_resnet152.ipynb`.**
+> Las entradas son siempre fondos de ojo **completos**: un `RandomResizedCrop(scale=(0.7, 1.0))` puede dejar fuera lesiones periféricas, el disco óptico o la mácula, y además deforma la proporción de la imagen. Aquí se sustituye por un **letterbox** (lado largo = `image_size`, relleno negro hasta cuadrado, sin deformar), aplicado **igual en train, val, test y Grad-CAM**.
+> Todo lo demás es idéntico al notebook original (hiperparámetros, épocas, flip, rotación, `ColorJitter`, métricas), salvo el preprocesado (`TrainConfig.preprocessing = "letterbox"`) y el **criterio de selección** (ver abajo).
+> **Criterio de selección = `val_loss` (se minimiza), no AUC.** El mejor checkpoint y el *early stopping* (paciencia 7) se basan en la pérdida focal de **validación** (`TrainConfig.selection_metric = "val_loss"`). Se usa `val_loss` y no `train_loss` porque la pérdida de entrenamiento baja casi siempre con las épocas y elegiría la más sobreajustada, mientras que `val_loss` sí mide generalización. AUC, F1 y accuracy se siguen calculando y reportando como métricas de evaluación.
+> Salidas con sufijo `_nocrop` para no pisar el baseline original: checkpoint `best_resnet152_disease_risk_nocrop.pt`, historial `artifacts/logs/baseline_nocrop_history.json` y figuras en `artifacts/gradcam/nocrop/`.
+
+# RFMiD — entrenar ResNet-152 (Disease_Risk), sin RandomResizedCrop
+
+**Nota:** el usuario pidió "ResNet-150"; no existe en torchvision. Usamos **ResNet-152** ImageNet pretrained.
+
+- Focal Loss (desbalance)
+- Fine-tuning: `layer4` + `fc` entrenables; resto congelado
+- 20 épocas por defecto; cada época imprime `train_loss` y `val_loss`
+--- [1] code
+import json
+import sys
+from dataclasses import replace
+from pathlib import Path
+
+# Raíz del proyecto: se sube desde el directorio actual hasta encontrar src/ y requirements.txt
+# (funciona desde notebooks/, notebooks/best_model/ o notebooks/other_experiments/)
+PROJECT_ROOT = next(
+    directory
+    for directory in (Path.cwd().resolve(), *Path.cwd().resolve().parents)
+    if (directory / "src").is_dir() and (directory / "requirements.txt").is_file()
+)
+if str(PROJECT_ROOT) not in sys.path:
+    sys.path.insert(0, str(PROJECT_ROOT))
+
+from src.config import default_config
+from src.data import PREPROCESSING_LETTERBOX, create_dataloaders
+from src.evaluate import evaluate_loader, format_metrics
+from src.train import get_device, load_best_checkpoint_for_eval, train_model
+
+# Misma configuración que el baseline; cambian el preprocesado, el nombre del checkpoint
+# y el criterio de selección (val_loss, a minimizar, en lugar de AUC)
+BASELINE_NOCROP_CHECKPOINT_NAME = "best_resnet152_disease_risk_nocrop.pt"
+config = replace(
+    default_config(),
+    preprocessing=PREPROCESSING_LETTERBOX,
+    best_checkpoint_name=BASELINE_NOCROP_CHECKPOINT_NAME,
+    selection_metric="val_loss",
+)
+print(
+    f"epochs={config.epochs}, batch_size={config.batch_size}, device={get_device()}, "
+    f"preprocessing={config.preprocessing}, selection_metric={config.selection_metric}"
+)
+--- [2] code
+(
+    train_loader,
+    val_loader,
+    test_loader,
+    train_dataframe,
+    val_dataframe,
+    test_dataframe,
+) = create_dataloaders(config)
+
+for name, dataframe in [
+    ("train", train_dataframe),
+    ("val", val_dataframe),
+    ("test", test_dataframe),
+]:
+    print(name, len(dataframe), dataframe["disease_risk"].value_counts().to_dict())
+--- [3] code
+# Entrena hasta 20 épocas (config.epochs). Por época: train_loss | val_loss | AUC | F1 | Acc
+# Mejor checkpoint y early stopping según val_loss mínima (AUC/F1/Acc solo se reportan).
+# Si ya existe el checkpoint nocrop NO se reentrena (ponlo a True para forzarlo).
+FORCE_RETRAIN = False
+
+baseline_checkpoint_path = config.checkpoint_dir / config.best_checkpoint_name
+history_path = PROJECT_ROOT / "artifacts" / "logs" / "baseline_nocrop_history.json"
+history_path.parent.mkdir(parents=True, exist_ok=True)
+
+if FORCE_RETRAIN or not baseline_checkpoint_path.is_file():
+    training_history: list[dict] = []
+    train_model(train_loader, val_loader, config, history=training_history)
+    history_path.write_text(json.dumps(training_history, indent=2), encoding="utf-8")
+else:
+    print(f"Checkpoint existente, se omite el entrenamiento: {baseline_checkpoint_path}")
+--- [4] code
+device = get_device()
+model = load_best_checkpoint_for_eval(config, device)
+
+val_metrics = evaluate_loader(model, val_loader, device)
+test_metrics = evaluate_loader(model, test_loader, device)
+print(format_metrics(val_metrics, "val"))
+print(format_metrics(test_metrics, "test"))
+--- [5] markdown
+## Grad-CAM: ¿en qué se fija el modelo?
+
+Grad-CAM (implementado a mano en `src/explain.py`) usa los *hooks* de la última capa convolucional (`layer4[-1]`): pondera cada mapa de activación por la media de su gradiente respecto al **logit de Disease_Risk** y aplica ReLU. El resultado es un mapa de calor de las regiones que *empujan* la predicción hacia "riesgo".
+
+Se muestran ejemplos del **test** (umbral 0.5, el de las métricas de arriba): los verdaderos positivos (TP) y negativos (TN) más confiados, y los errores más confiados (FP y FN). Las imágenes se preprocesan con el **mismo letterbox** que usó el modelo (`preprocessing=config.preprocessing`); por eso las bandas negras superior/inferior son relleno. Las figuras se guardan en `artifacts/gradcam/nocrop/`.
+--- [6] code
+import matplotlib.pyplot as plt
+
+from src.evaluate import collect_predictions
+from src.explain import compute_gradcam_samples, plot_gradcam_grid
+
+GRADCAM_DIR = PROJECT_ROOT / "artifacts" / "gradcam" / "nocrop"
+DECISION_THRESHOLD = 0.5
+
+test_probabilities, test_labels, _ = collect_predictions(model, test_loader, device)
+gradcam_samples = compute_gradcam_samples(
+    model,
+    test_dataframe,
+    test_probabilities,
+    test_labels,
+    threshold=DECISION_THRESHOLD,
+    image_size=config.image_size,
+    examples_per_group=4,
+    preprocessing=config.preprocessing,
+)
+print({group: sum(s['group'] == group for s in gradcam_samples) for group in ['TP', 'TN', 'FP', 'FN']})
+--- [7] code
+group_titles = {
+    "TP": "Baseline nocrop - verdaderos positivos (riesgo detectado)",
+    "TN": "Baseline nocrop - verdaderos negativos (sano)",
+    "FP": "Baseline nocrop - falsos positivos (sano predicho como riesgo)",
+    "FN": "Baseline nocrop - falsos negativos (riesgo no detectado)",
+}
+for group, group_title in group_titles.items():
+    group_samples = [s for s in gradcam_samples if s["group"] == group]
+    figure = plot_gradcam_grid(
+        group_samples,
+        title=group_title,
+        save_path=GRADCAM_DIR / f"baseline_{group}.png",
+    )
+    if figure is not None:
+        plt.show()
+--- [8] markdown
+### Lectura cualitativa (baseline nocrop, test)
+
+_Pendiente: la lectura del notebook original (`other_experiments/02_train_resnet152.ipynb`) describe las imágenes y errores del modelo con recorte aleatorio, así que no se copia aquí. Compara estas figuras con `artifacts/gradcam/baseline_*.png` una vez ejecutado el notebook._
+
+########## notebooks\best_model\05_improve_recall.ipynb
+--- [0] markdown
+# RFMiD — subir el recall de `Disease_Risk` sin perder accuracy, F1 ni AUC
+
+**Contexto médico.** Es un cribado: un falso negativo (paciente con riesgo que el modelo da por sano) es peor que un falso positivo. El objetivo es que el **recall de la clase enfermo** (sensibilidad) esté **cerca de 0.90 tanto en validación como en test**, manteniendo accuracy, F1 y AUC.
+
+**Punto de partida:** el ResNet-152 ajustado con Optuna y entrenado con *letterbox* (sin recorte aleatorio) de `02.1_train_resnet152_nocrop.ipynb`, evaluado a umbral 0.5 y al umbral de Youden de validación (como en 02.1).
+
+**Plan por etapas (se para en cuanto se cumple el objetivo):**
+1. **Umbral de decisión elegido en validación**: el mayor umbral cuyo recall de validación sea ≥ objetivo (+ un pequeño margen). Es el método estándar y no cuesta nada; el AUC no cambia porque no se toca el modelo.
+2. **TTA** (volteo horizontal y rotaciones ±10°) y **ensemble** (media de probabilidades) de los ResNet-152 ya entrenados, cada uno con su preprocesado. Miembros y variante final se eligen **solo con el AUC de validación**.
+3. Búsqueda Optuna orientada a recall + reentrenamiento: solo si 1–2 no bastan (ver sección correspondiente).
+
+**Reglas anti-fuga:** umbral, miembros del ensemble y variante final se deciden con **validación**; test solo se usa para informar las métricas finales (con IC 95 % bootstrap, 1000 remuestras, umbral fijo).
+--- [1] code
+import json
+import os
+import sys
+from pathlib import Path
+
+# Raíz del proyecto: se sube desde el directorio actual hasta encontrar src/ y requirements.txt
+# (funciona desde notebooks/, notebooks/best_model/ o notebooks/other_experiments/)
+PROJECT_ROOT = next(
+    directory
+    for directory in (Path.cwd().resolve(), *Path.cwd().resolve().parents)
+    if (directory / "src").is_dir() and (directory / "requirements.txt").is_file()
+)
+if str(PROJECT_ROOT) not in sys.path:
+    sys.path.insert(0, str(PROJECT_ROOT))
+os.environ.setdefault("TORCH_HOME", str(PROJECT_ROOT / "artifacts" / "torch_cache"))
+
+import matplotlib.pyplot as plt
+import numpy as np
+import pandas as pd
+
+from src.config import default_config
+from src.data import build_split_dataframe
+from src.evaluate import select_threshold_youden
+from src.explain import compute_gradcam_samples, plot_gradcam_grid
+from src.models_zoo import load_architecture_checkpoint
+from src.recall_config import (
+    BOOTSTRAP_RESAMPLES,
+    BOOTSTRAP_SEED,
+    FINAL_SUMMARY_PATH,
+    PREDICTION_CACHE_DIR,
+    RECALL_FIGURES_DIR,
+    RECALL_GRADCAM_DIR,
+    REFERENCE_MEMBER_NAME,
+    TARGET_RECALL,
+    VALIDATION_RECALL_MARGIN,
+    existing_checkpoint_members,
+)
+from src.recall_optimization import (
+    bootstrap_metric_differences,
+    choose_ensemble_subset,
+    compute_operating_point_metrics,
+    rank_ensemble_subsets,
+    select_threshold_for_recall,
+    sweep_thresholds,
+)
+from src.recall_plots import plot_confusion_matrices, plot_roc_and_pr_curves, plot_threshold_sweep
+from src.recall_report import build_summary_table, miss_rate_by_disease, summarize_operating_point
+from src.train import get_device
+from src.tta_inference import DEFAULT_TTA_VIEW_NAMES, average_views, get_member_view_probabilities
+
+pd.set_option("display.width", 200)
+pd.set_option("display.max_colwidth", 80)
+device = get_device()
+validation_recall_goal = TARGET_RECALL + VALIDATION_RECALL_MARGIN
+print(f"device={device} | recall objetivo={TARGET_RECALL} | objetivo en val (con margen)={validation_recall_goal:.2f}")
+--- [2] markdown
+## 1. Datos y probabilidades de cada modelo
+
+Se cargan las etiquetas de validación y test (134 sanos + 506 enfermos cada uno) y, para cada ResNet-152 ya entrenado, las probabilidades de P(riesgo) **por vista TTA**. Cada modelo se evalúa con **su** preprocesado (resize cuadrado los originales, letterbox los *nocrop*). La inferencia es lo caro en CPU, así que se guarda en `artifacts/recall/predictions/` y solo se calcula lo que falte (`scripts/precompute_recall_predictions.py` la deja precalculada).
+--- [3] code
+config = default_config()
+val_dataframe = build_split_dataframe(config.val_labels_csv, config.val_images_dir)
+test_dataframe = build_split_dataframe(config.test_labels_csv, config.test_images_dir)
+val_labels = val_dataframe["disease_risk"].to_numpy(dtype=float)
+test_labels = test_dataframe["disease_risk"].to_numpy(dtype=float)
+labels_by_split = {"val": val_labels, "test": test_labels}
+print("val  :", int(val_labels.sum()), "enfermos /", int((1 - val_labels).sum()), "sanos")
+print("test :", int(test_labels.sum()), "enfermos /", int((1 - test_labels).sum()), "sanos")
+
+members = existing_checkpoint_members()
+members_by_name = {member.name: member for member in members}
+view_probabilities = {
+    member.name: {
+        "val": get_member_view_probabilities(member, "val", val_dataframe, PREDICTION_CACHE_DIR, device),
+        "test": get_member_view_probabilities(member, "test", test_dataframe, PREDICTION_CACHE_DIR, device),
+    }
+    for member in members
+}
+
+
+def member_probabilities(use_tta: bool) -> dict[str, dict[str, np.ndarray]]:
+    """{miembro: {split: P(riesgo)}} sin TTA (vista identity) o con la media de las vistas TTA."""
+    view_names = DEFAULT_TTA_VIEW_NAMES if use_tta else ("identity",)
+    return {
+        name: {split: average_views(views[split], view_names) for split in ("val", "test")}
+        for name, views in view_probabilities.items()
+    }
+
+
+plain_probabilities = member_probabilities(use_tta=False)
+tta_probabilities = member_probabilities(use_tta=True)
+
+member_auc_rows = []
+for name in plain_probabilities:
+    row = {"modelo": name, "preprocesado": members_by_name[name].preprocessing}
+    for split in ("val", "test"):
+        for label, source in (("sin TTA", plain_probabilities), ("TTA", tta_probabilities)):
+            row[f"AUC {split} {label}"] = compute_operating_point_metrics(
+                source[name][split], labels_by_split[split], 0.5
+            )["auc"]
+    member_auc_rows.append(row)
+pd.DataFrame(member_auc_rows).set_index("modelo").round(4)
+--- [4] markdown
+## 2. Punto de partida (referencia)
+
+Modelo `ajustado_nocrop` **sin TTA** con los dos umbrales de 02.1: 0.5 y el índice de Youden calculado en validación. Intervalos de confianza al 95 % por bootstrap sobre test (umbral fijo).
+--- [5] code
+reference_probabilities = plain_probabilities[REFERENCE_MEMBER_NAME]
+youden_threshold = select_threshold_youden(reference_probabilities["val"], val_labels)
+
+
+def summarize_both_splits(configurations: dict[str, tuple[dict[str, np.ndarray], float]]):
+    """Resúmenes por configuración: val sin IC y test con IC bootstrap. Umbral fijo (de val)."""
+    val_summaries, test_summaries = {}, {}
+    for name, (probabilities_by_split, threshold) in configurations.items():
+        val_summaries[name] = summarize_operating_point(
+            probabilities_by_split["val"], val_labels, threshold, BOOTSTRAP_RESAMPLES, BOOTSTRAP_SEED,
+            with_intervals=False,
+        )
+        test_summaries[name] = summarize_operating_point(
+            probabilities_by_split["test"], test_labels, threshold, BOOTSTRAP_RESAMPLES, BOOTSTRAP_SEED
+        )
+    return val_summaries, test_summaries
+
+
+baseline_configurations = {
+    "Referencia, umbral 0.5": (reference_probabilities, 0.5),
+    "Referencia, umbral Youden (val)": (reference_probabilities, youden_threshold),
+}
+baseline_val_summaries, baseline_test_summaries = summarize_both_splits(baseline_configurations)
+print("VALIDACIÓN")
+display(build_summary_table(baseline_val_summaries))
+print("TEST (IC 95 % bootstrap)")
+display(build_summary_table(baseline_test_summaries))
+--- [6] markdown
+## 3. Etapa 1 — umbral elegido en validación
+
+El recall de validación solo baja al subir el umbral y la especificidad solo sube. Por eso el **mayor umbral con recall de validación ≥ objetivo** es el que más especificidad conserva. Se apunta a `objetivo + margen` (0.91) porque el recall de test fluctúa unos puntos respecto al de validación (506 positivos). La curva de validación es la que decide; la de test se muestra solo a título informativo con el mismo umbral.
+--- [7] code
+stage1_threshold = select_threshold_for_recall(reference_probabilities["val"], val_labels, validation_recall_goal)
+print(f"Umbral etapa 1 (elegido en validación) = {stage1_threshold:.4f}")
+
+RECALL_FIGURES_DIR.mkdir(parents=True, exist_ok=True)
+for split_name, title_suffix in (("val", "validación (decide)"), ("test", "test (solo informativo)")):
+    sweep_table = sweep_thresholds(reference_probabilities[split_name], labels_by_split[split_name])
+    plot_threshold_sweep(
+        sweep_table, stage1_threshold, TARGET_RECALL,
+        title=f"Métricas vs umbral - referencia, {title_suffix}",
+        save_path=RECALL_FIGURES_DIR / f"threshold_sweep_reference_{split_name}.png",
+    )
+    plt.show()
+--- [8] markdown
+## 4. Etapa 2 — TTA y ensemble
+
+- **TTA**: se promedian las probabilidades de 4 vistas deterministas (original, volteo horizontal, rotación +10° y −10° con relleno negro).
+- **Ensemble**: media de probabilidades de un subconjunto de los 4 ResNet-152. Con 4 modelos se evalúan **los 15 subconjuntos** y se elige el de mayor AUC de **validación**; a igualdad práctica (diferencia < 0.002, ruido con 640 imágenes) se prefiere el más grande, que es más estable.
+- Entre las 4 variantes (referencia, referencia+TTA, ensemble, ensemble+TTA) se elige la de **mayor AUC de validación**. Test no interviene.
+--- [9] code
+ranking_without_tta = rank_ensemble_subsets({n: p["val"] for n, p in plain_probabilities.items()}, val_labels)
+ranking_with_tta = rank_ensemble_subsets({n: p["val"] for n, p in tta_probabilities.items()}, val_labels)
+print("Top 5 subconjuntos SIN TTA (AUC val)")
+display(ranking_without_tta.head(5))
+print("Top 5 subconjuntos CON TTA (AUC val)")
+display(ranking_with_tta.head(5))
+
+ensemble_members_without_tta = choose_ensemble_subset(ranking_without_tta)
+ensemble_members_with_tta = choose_ensemble_subset(ranking_with_tta)
+
+
+def averaged_over(source: dict, member_names: tuple[str, ...]) -> dict[str, np.ndarray]:
+    return {split: np.mean([source[name][split] for name in member_names], axis=0) for split in ("val", "test")}
+
+
+candidate_definitions = {
+    "A: referencia": (plain_probabilities, (REFERENCE_MEMBER_NAME,), False),
+    "B: referencia + TTA": (tta_probabilities, (REFERENCE_MEMBER_NAME,), True),
+    "C: ensemble": (plain_probabilities, ensemble_members_without_tta, False),
+    "D: ensemble + TTA": (tta_probabilities, ensemble_members_with_tta, True),
+}
+candidate_probabilities = {
+    name: averaged_over(source, member_names)
+    for name, (source, member_names, _) in candidate_definitions.items()
+}
+
+selection_rows = []
+for name, probabilities_by_split in candidate_probabilities.items():
+    candidate_threshold = select_threshold_for_recall(probabilities_by_split["val"], val_labels, validation_recall_goal)
+    val_metrics = compute_operating_point_metrics(probabilities_by_split["val"], val_labels, candidate_threshold)
+    selection_rows.append(
+        {
+            "variante": name,
+            "miembros": ", ".join(candidate_definitions[name][1]),
+            "AUC val": val_metrics["auc"],
+            "umbral": candidate_threshold,
+            "recall val": val_metrics["recall"],
+            "especificidad val": val_metrics["specificity"],
+            "F1 val": val_metrics["f1"],
+            "accuracy val": val_metrics["accuracy"],
+        }
+    )
+selection_table = pd.DataFrame(selection_rows).set_index("variante")
+display(selection_table.round(4))
+
+chosen_candidate_name = selection_table["AUC val"].idxmax()
+_, chosen_member_names, chosen_uses_tta = candidate_definitions[chosen_candidate_name]
+chosen_probabilities = candidate_probabilities[chosen_candidate_name]
+chosen_threshold = float(selection_table.loc[chosen_candidate_name, "umbral"])
+print(f"\nVariante elegida con VALIDACIÓN: {chosen_candidate_name} | miembros={chosen_member_names} | umbral={chosen_threshold:.4f}")
+--- [10] markdown
+## 5. Etapa 3 — Optuna orientada a recall
+
+Solo estaba prevista si las etapas 1–2 no alcanzaban el recall ≈ 0.90 sin perjudicar F1, accuracy o AUC. La comprobación está en la sección siguiente: **si el objetivo se cumple en validación y en test sin pérdidas apreciables, no se lanza la búsqueda** (sería coste de CPU sin beneficio justificable y más riesgo de sobreajustar la validación de 640 imágenes). La celda calcula esa condición explícitamente.
+--- [11] code
+final_val_metrics = compute_operating_point_metrics(chosen_probabilities["val"], val_labels, chosen_threshold)
+final_test_metrics = compute_operating_point_metrics(chosen_probabilities["test"], test_labels, chosen_threshold)
+reference_test_metrics = compute_operating_point_metrics(reference_probabilities["test"], test_labels, 0.5)
+
+target_met = (
+    final_val_metrics["recall"] >= TARGET_RECALL - 0.005
+    and final_test_metrics["recall"] >= TARGET_RECALL - 0.005
+)
+no_metric_loss = all(
+    final_test_metrics[name] >= reference_test_metrics[name] - 0.005 for name in ("accuracy", "f1", "auc")
+)
+print(f"Recall val={final_val_metrics['recall']:.3f} | recall test={final_test_metrics['recall']:.3f}")
+print(f"¿Objetivo de recall cumplido en val y test? {target_met}")
+print(f"¿Accuracy, F1 y AUC de test sin pérdida (> -0.005 vs referencia a 0.5)? {no_metric_loss}")
+stage3_needed = not (target_met and no_metric_loss)
+print("Etapa 3 (Optuna) necesaria:", stage3_needed)
+--- [12] markdown
+## 6. Tabla final en TEST (umbral 0.5 / Youden vs mejorado)
+
+Todas las filas usan umbrales fijados con validación; test solo informa. Entre corchetes, IC 95 % por bootstrap (1000 remuestras). La penúltima fila aísla el efecto del umbral; la última es el sistema final.
+--- [13] code
+final_label = f"FINAL: {chosen_candidate_name} + umbral val"
+final_configurations = {
+    **baseline_configurations,
+    "Etapa 1: referencia + umbral val (recall objetivo)": (reference_probabilities, stage1_threshold),
+    final_label: (chosen_probabilities, chosen_threshold),
+    # Sensibilidad al margen: mismo sistema pero con el recall de val exactamente >= 0.90
+    f"Variante sin margen (recall val >= {TARGET_RECALL:.2f})": (
+        chosen_probabilities,
+        select_threshold_for_recall(chosen_probabilities["val"], val_labels, TARGET_RECALL),
+    ),
+}
+final_val_summaries, final_test_summaries = summarize_both_splits(final_configurations)
+
+print("TEST (IC 95 % bootstrap)")
+final_test_table = build_summary_table(final_test_summaries)
+display(final_test_table)
+print("VALIDACIÓN (la que decide)")
+display(build_summary_table(final_val_summaries))
+
+# Bootstrap pareado: final vs referencia a 0.5 (diferencia de cada métrica con IC 95 %)
+paired_differences = bootstrap_metric_differences(
+    chosen_probabilities["test"], chosen_threshold,
+    reference_probabilities["test"], 0.5,
+    test_labels, n_resamples=BOOTSTRAP_RESAMPLES, seed=BOOTSTRAP_SEED,
+)
+difference_table = pd.DataFrame(
+    {
+        name: {"diferencia": diff, "IC95 inf": low, "IC95 sup": high}
+        for name, (diff, low, high) in paired_differences.items()
+    }
+).T.round(4)
+print("Diferencia FINAL - referencia(0.5) en test, bootstrap pareado")
+display(difference_table)
+--- [14] code
+plot_confusion_matrices(
+    {name: summary["confusion_matrix"] for name, summary in final_test_summaries.items()},
+    title="Matrices de confusión en test (filas: real, columnas: predicho)",
+    save_path=RECALL_FIGURES_DIR / "confusion_matrices_test.png",
+)
+plt.show()
+
+for split_name, split_labels in labels_by_split.items():
+    split_summaries = final_val_summaries if split_name == "val" else final_test_summaries
+    plot_roc_and_pr_curves(
+        curves={
+            "Referencia": (reference_probabilities[split_name], split_labels),
+            final_label: (chosen_probabilities[split_name], split_labels),
+        },
+        operating_points={
+            "Referencia": (0.5, split_summaries["Referencia, umbral 0.5"]["recall"],
+                           split_summaries["Referencia, umbral 0.5"]["specificity"]),
+            final_label: (chosen_threshold, split_summaries[final_label]["recall"],
+                          split_summaries[final_label]["specificity"]),
+        },
+        title=f"ROC y Precisión-Recall ({split_name}); el punto de la referencia es el umbral 0.5",
+        save_path=RECALL_FIGURES_DIR / f"roc_pr_{split_name}.png",
+    )
+    plt.show()
+
+final_sweep = sweep_thresholds(chosen_probabilities["val"], val_labels)
+plot_threshold_sweep(
+    final_sweep, chosen_threshold, TARGET_RECALL,
+    title=f"Métricas vs umbral en validación - {chosen_candidate_name}",
+    save_path=RECALL_FIGURES_DIR / "threshold_sweep_final_val.png",
+)
+plt.show()
+--- [15] markdown
+## 7. Falsos negativos que quedan (test)
+
+Se analiza qué enfermos sigue dejando pasar el sistema final: cuántos son, si los pierden todos los modelos, qué enfermedades concretas (columnas de RFMiD) concentran los fallos y qué mira la red en los más confiados (Grad-CAM del ResNet-152 `ajustado_nocrop`, con el **mismo letterbox** que usó para entrenar; la probabilidad impresa es la de ese modelo, no la del ensemble).
+--- [16] code
+final_predictions = chosen_probabilities["test"] >= chosen_threshold
+false_negative_mask = (test_labels == 1) & ~final_predictions
+false_negative_indices = np.flatnonzero(false_negative_mask)
+print(f"Falsos negativos en test: {len(false_negative_indices)} de {int(test_labels.sum())} enfermos")
+
+# ¿Los falla cada miembro individualmente al mismo umbral por separado? (solo informativo)
+member_rows = []
+for name in plain_probabilities:
+    member_threshold = select_threshold_for_recall(plain_probabilities[name]["val"], val_labels, validation_recall_goal)
+    member_metrics = compute_operating_point_metrics(plain_probabilities[name]["test"], test_labels, member_threshold)
+    member_rows.append(
+        {"miembro": name, "umbral (val)": member_threshold, "FN test": member_metrics["confusion_matrix"][1][0],
+         "recall test": member_metrics["recall"], "especificidad test": member_metrics["specificity"]}
+    )
+print("Cada miembro por separado (sin TTA, con su propio umbral elegido en val): los FN solo son comparables a igual especificidad")
+display(pd.DataFrame(member_rows).set_index("miembro").round(3))
+
+false_negative_probabilities = chosen_probabilities["test"][false_negative_indices]
+print(
+    f"P(riesgo) de los FN del sistema final: mediana={np.median(false_negative_probabilities):.3f}, "
+    f"mínima={false_negative_probabilities.min():.3f}, máxima={false_negative_probabilities.max():.3f} "
+    f"(umbral={chosen_threshold:.3f})"
+)
+near_misses = int((false_negative_probabilities >= 0.75 * chosen_threshold).sum())
+print(f"FN 'por poco' (P >= 75 % del umbral): {near_misses}")
+
+miss_table = miss_rate_by_disease(config.test_labels_csv, chosen_probabilities["test"], chosen_threshold)
+display(miss_table)
+--- [17] code
+reference_member = members_by_name[REFERENCE_MEMBER_NAME]
+gradcam_model = load_architecture_checkpoint("resnet152", reference_member.checkpoint_path, device)
+gradcam_samples = compute_gradcam_samples(
+    gradcam_model,
+    test_dataframe,
+    chosen_probabilities["test"],
+    test_labels,
+    threshold=chosen_threshold,
+    image_size=reference_member.image_size,
+    examples_per_group=6,
+    preprocessing=reference_member.preprocessing,
+)
+for group, group_title in (
+    ("FN", "Falsos negativos más confiados del sistema final (Grad-CAM de ajustado_nocrop)"),
+    ("TP", "Verdaderos positivos más confiados (contraste)"),
+):
+    group_samples = [sample for sample in gradcam_samples if sample["group"] == group]
+    plot_gradcam_grid(group_samples, title=group_title, save_path=RECALL_GRADCAM_DIR / f"final_{group}.png")
+    plt.show()
+--- [18] markdown
+## 8. Resumen guardado
+--- [19] code
+def metrics_without_matrix(summary: dict) -> dict:
+    return {name: value for name, value in summary.items() if name != "confusion_matrix"} | {
+        "confusion_matrix_TN_FP_FN_TP": [
+            summary["confusion_matrix"][0][0], summary["confusion_matrix"][0][1],
+            summary["confusion_matrix"][1][0], summary["confusion_matrix"][1][1],
+        ]
+    }
+
+
+final_summary = {
+    "method": "umbral recall-objetivo elegido en validación"
+    + (" + ensemble" if len(chosen_member_names) > 1 else "")
+    + (" + TTA" if chosen_uses_tta else ""),
+    "chosen_variant": chosen_candidate_name,
+    "ensemble_members": list(chosen_member_names),
+    "member_preprocessing": {name: members_by_name[name].preprocessing for name in chosen_member_names},
+    "tta_views": list(DEFAULT_TTA_VIEW_NAMES) if chosen_uses_tta else ["identity"],
+    "target_recall": TARGET_RECALL,
+    "validation_recall_margin": VALIDATION_RECALL_MARGIN,
+    "decision_threshold": chosen_threshold,
+    "threshold_selected_on": "validation only",
+    "bootstrap": {"resamples": BOOTSTRAP_RESAMPLES, "confidence_level": 0.95, "seed": BOOTSTRAP_SEED},
+    "val_metrics": {name: metrics_without_matrix(s) for name, s in final_val_summaries.items()},
+    "test_metrics": {name: metrics_without_matrix(s) for name, s in final_test_summaries.items()},
+    "paired_difference_final_minus_reference_0.5_test": {
+        name: {"difference": diff, "ci95": [low, high]} for name, (diff, low, high) in paired_differences.items()
+    },
+    "false_negatives_test": int(len(false_negative_indices)),
+    "optuna_stage_run": False,
+    "optuna_stage_needed": stage3_needed,
+    "notes": "Etapa 3 (Optuna + reentrenamiento) no ejecutada en este notebook; ver optuna_stage_needed.",
+}
+FINAL_SUMMARY_PATH.parent.mkdir(parents=True, exist_ok=True)
+FINAL_SUMMARY_PATH.write_text(json.dumps(final_summary, indent=2, ensure_ascii=False), encoding="utf-8")
+print("Guardado en", FINAL_SUMMARY_PATH)
+--- [20] markdown
+## 9. Conclusión
+
+**¿Se alcanzó el recall ≈ 0.90? Sí, en validación y en test, sin tocar ni reentrenar ningún modelo.** La etapa 3 (Optuna + reentrenamiento) **no se ejecutó** porque las etapas 1–2 ya cumplían el objetivo (ver la celda de comprobación); lanzarla habría costado horas de CPU y más riesgo de sobreajustar una validación de solo 640 imágenes (134 sanos).
+
+**Método final** (todo elegido con validación): media de probabilidades de los 4 ResNet-152 (cada uno con su preprocesado) con TTA de 4 vistas (original, volteo horizontal, rotación ±10°), y umbral de decisión **0.399** = mayor umbral con recall de validación ≥ 0.91 (objetivo 0.90 + 0.01 de margen).
+
+**Resultado en test** (IC 95 % bootstrap, umbral fijado en validación), frente a la referencia (`ajustado_nocrop`, umbral 0.5):
+
+| | Referencia (0.5) | **Final** |
+|---|---|---|
+| Recall (sensibilidad) | 0.868 [0.836, 0.893] | **0.929** [0.906, 0.951] |
+| Especificidad | 0.955 [0.913, 0.986] | 0.881 [0.824, 0.931] |
+| Precisión | 0.987 [0.975, 0.996] | 0.967 [0.950, 0.981] |
+| Accuracy | 0.886 [0.859, 0.908] | **0.919** [0.897, 0.939] |
+| F1 | 0.923 [0.904, 0.939] | **0.948** [0.933, 0.961] |
+| AUC | 0.968 [0.953, 0.978] | 0.971 [0.958, 0.981] |
+| FN / FP | 67 / 6 | **36** / 16 |
+
+El recall en validación es 0.911 (objetivo del umbral) y en test 0.929. El margen de 0.01 deja el recall de test algo por encima de 0.90; la variante **sin margen** (recall de validación ≥ 0.90, umbral 0.416) da test recall 0.913, especificidad 0.888, accuracy 0.908 y F1 0.940: es la alternativa si se prefiere ceñirse más al 0.90.
+
+**Qué ha costado y qué no:**
+- **Recall: +6.1 puntos** (IC pareado [+4.3, +8.4]): de 67 a 36 falsos negativos sobre 506 enfermos.
+- **Especificidad: −7.5 puntos** (IC pareado [−12.2, −3.7]) y precisión −1.9 puntos: de 6 a 16 falsos positivos sobre 134 sanos. Este es el precio real y es significativo; no hay forma de subir el recall sin pagarlo, porque mover el umbral solo desplaza el punto sobre la misma curva ROC.
+- **Accuracy y F1 suben** (+3.3 y +2.4 puntos, ICs que no incluyen 0), no bajan, porque el 79 % de las imágenes son enfermas y los positivos pesan más en ambas métricas. No es una mejora del modelo sino del punto de operación.
+- **AUC: +0.003, dentro del ruido** (IC pareado [−0.002, +0.009]). El AUC no depende del umbral; el ensemble + TTA solo aporta una mejora pequeña y no demostrable. La etapa 1 (solo el umbral) ya daba casi todo el beneficio (test: recall 0.923, accuracy 0.911, F1 0.942); el ensemble/TTA añade ~+0.006 de recall y ~+0.015 de especificidad a igual criterio de validación, también dentro de los IC.
+
+**Falsos negativos que quedan (36):** sus probabilidades están en 0.15–0.40 (mediana 0.29), 17 de ellos "por poco" (≥ 75 % del umbral). Se concentran en **ODC** (cupping del disco óptico, 17 de 91 casos perdidos, 19 %) y **DN** (7 de 46, 15 %); DR (3/124) y MH (2/104), que son las más frecuentes, casi no se pierden. Los Grad-CAM de los FN más confiados muestran fondos de ojo de aspecto normal a 224 px, mapas de calor sobre el borde/relleno negro o sobre el disco óptico sin una lesión evidente: son hallazgos sutiles (el cupping se aprecia mal a baja resolución). Una mejora real probablemente exigiría más resolución o más datos de esas clases, no solo mover el umbral (no se ha probado aquí).
+
+**Salvedades.** (1) Todo se eligió con validación; test solo informa, pero la elección entre 4 variantes y 15 subconjuntos usa la misma validación de 640 imágenes: las diferencias de AUC entre variantes (< 0.01) están dentro del ruido, por eso se priorizó el ensemble más grande. (2) La especificidad de validación (0.776) es mucho menor que la de test (0.881): los 134 sanos de validación resultan más difíciles, y los IC de especificidad son amplios (±0.05). (3) El IC bootstrap mide solo la incertidumbre del tamaño del test con el umbral ya fijado, no la de elegirlo. (4) Los 4 modelos se evalúan con los preprocesados con los que se entrenaron (resize cuadrado / letterbox).
+
+########## notebooks\other_experiments\02.1_train_resnet152.ipynb
+--- [0] markdown
+# RFMiD — ResNet-152 con los hiperparámetros de Optuna (Disease_Risk)
+
+1. Carga los mejores hiperparámetros de `artifacts/optuna/best_params.json` (notebook `03`).
+2. Entrena el modelo final: `train_loss` y `val_loss` por época, *early stopping* y checkpoint por AUC de validación en un archivo **nuevo** (`best_resnet152_disease_risk_optuna.pt`), sin tocar el del baseline.
+3. Evalúa en **test**; el umbral de decisión se elige **solo en validación** (índice de Youden) y se compara con el baseline.
+4. Grad-CAM sobre el modelo ajustado.
+
+**Nota de cómputo:** sin GPU (CPU, 4 hilos). Con `layer3` descongelado una época a 224 px tarda ~20 min, así que el entrenamiento final se limita a **10 épocas** (`EPOCHS_FINAL`) en lugar de 20; sube el valor si dispones de más tiempo/GPU.
+--- [1] code
+import json
+import os
+import sys
+from pathlib import Path
+
+# Raíz del proyecto: se sube desde el directorio actual hasta encontrar src/ y requirements.txt
+# (funciona desde notebooks/, notebooks/best_model/ o notebooks/other_experiments/)
+PROJECT_ROOT = next(
+    directory
+    for directory in (Path.cwd().resolve(), *Path.cwd().resolve().parents)
+    if (directory / "src").is_dir() and (directory / "requirements.txt").is_file()
+)
+if str(PROJECT_ROOT) not in sys.path:
+    sys.path.insert(0, str(PROJECT_ROOT))
+os.environ.setdefault("TORCH_HOME", str(PROJECT_ROOT / "artifacts" / "torch_cache"))
+
+import matplotlib.pyplot as plt
+import pandas as pd
+from sklearn.metrics import classification_report
+
+from src.config import default_config
+from src.data import create_dataloaders
+from src.evaluate import (
+    collect_predictions,
+    compute_classification_metrics,
+    select_threshold_youden,
+)
+from src.explain import compute_gradcam_samples, plot_gradcam_grid
+from src.model import load_model
+from src.train import get_device, train_model
+from src.tuning import build_final_config
+
+device = get_device()
+print(f"device={device}")
+--- [2] markdown
+## 1. Hiperparámetros encontrados por Optuna
+--- [3] code
+EPOCHS_FINAL = 10  # 20 en el baseline; reducido por coste en CPU (ver nota arriba)
+TUNED_CHECKPOINT_NAME = "best_resnet152_disease_risk_optuna.pt"
+
+best_params_payload = json.loads(
+    (PROJECT_ROOT / "artifacts" / "optuna" / "best_params.json").read_text(encoding="utf-8")
+)
+best_params = best_params_payload["best_params"]
+print(f"AUC de validación en la búsqueda (régimen reducido): {best_params_payload['best_val_auc_reduced_regime']:.4f}")
+pd.Series(best_params, name="valor").to_frame()
+--- [4] code
+baseline_config = default_config()
+tuned_config = build_final_config(baseline_config, best_params, TUNED_CHECKPOINT_NAME)
+tuned_config.epochs = EPOCHS_FINAL
+
+print(
+    f"epochs={tuned_config.epochs}, batch_size={tuned_config.batch_size}, lr={tuned_config.learning_rate:.2e}, "
+    f"scheduler={tuned_config.lr_scheduler}, unfreeze_layer3={tuned_config.unfreeze_layer3}, "
+    f"image_size={tuned_config.image_size}"
+)
+
+(
+    train_loader,
+    val_loader,
+    test_loader,
+    train_dataframe,
+    val_dataframe,
+    test_dataframe,
+) = create_dataloaders(tuned_config)
+for name, dataframe in [("train", train_dataframe), ("val", val_dataframe), ("test", test_dataframe)]:
+    print(name, len(dataframe), dataframe["disease_risk"].value_counts().to_dict())
+--- [5] markdown
+## 2. Entrenamiento final
+
+Cada época imprime `train_loss` y `val_loss`. Si ya existe el checkpoint ajustado no se reentrena (el historial se recarga de `artifacts/logs/tuned_history.json`).
+--- [6] code
+FORCE_RETRAIN = False
+
+tuned_checkpoint_path = tuned_config.checkpoint_dir / tuned_config.best_checkpoint_name
+history_path = PROJECT_ROOT / "artifacts" / "logs" / "tuned_history.json"
+history_path.parent.mkdir(parents=True, exist_ok=True)
+
+if FORCE_RETRAIN or not (tuned_checkpoint_path.is_file() and history_path.is_file()):
+    training_history: list[dict] = []
+    train_model(train_loader, val_loader, tuned_config, history=training_history)
+    history_path.write_text(json.dumps(training_history, indent=2), encoding="utf-8")
+else:
+    training_history = json.loads(history_path.read_text(encoding="utf-8"))
+    print(f"Checkpoint existente, se omite el entrenamiento: {tuned_checkpoint_path}")
+--- [7] code
+history_table = pd.DataFrame(training_history).set_index("epoch")
+figure, (loss_axis, auc_axis) = plt.subplots(1, 2, figsize=(12, 4))
+
+loss_axis.plot(history_table.index, history_table["train_loss"], marker="o", label="train_loss")
+loss_axis.plot(history_table.index, history_table["val_loss"], marker="o", label="val_loss")
+loss_axis.set(title="Pérdida focal por época", xlabel="Época", ylabel="Loss")
+loss_axis.legend()
+
+auc_axis.plot(history_table.index, history_table["val_auc"], marker="o", color="tab:green")
+auc_axis.axvline(history_table["val_auc"].idxmax(), color="gray", linestyle="--", label="mejor época")
+auc_axis.set(title="AUC de validación por época", xlabel="Época", ylabel="AUC")
+auc_axis.legend()
+
+plt.tight_layout()
+figures_dir = PROJECT_ROOT / "artifacts" / "figures"
+figures_dir.mkdir(parents=True, exist_ok=True)
+plt.savefig(figures_dir / "tuned_training_curves.png", dpi=110)
+plt.show()
+history_table.round(4)
+--- [8] markdown
+## 3. Evaluación: baseline vs ajustado
+
+Se calculan las probabilidades de cada modelo en val y test. El **umbral se elige en validación** (índice de Youden: maximiza TPR − FPR, más adecuado que F1 con 79 % de positivos) y se aplica sin cambios a test. Se incluye también el umbral fijo 0.5 por comparabilidad con las métricas del baseline. El AUC no depende del umbral.
+--- [9] code
+baseline_model = load_model(
+    baseline_config.checkpoint_dir / baseline_config.best_checkpoint_name, baseline_config, device
+)
+tuned_model = load_model(tuned_checkpoint_path, tuned_config, device)
+
+predictions = {}
+for model_name, model in [("baseline", baseline_model), ("ajustado", tuned_model)]:
+    val_probabilities, val_labels, _ = collect_predictions(model, val_loader, device)
+    test_probabilities, test_labels, _ = collect_predictions(model, test_loader, device)
+    predictions[model_name] = {
+        "val_probabilities": val_probabilities,
+        "val_labels": val_labels,
+        "test_probabilities": test_probabilities,
+        "test_labels": test_labels,
+        # Umbral elegido SOLO con validación
+        "threshold": select_threshold_youden(val_probabilities, val_labels),
+    }
+    print(f"{model_name}: umbral (Youden, val) = {predictions[model_name]['threshold']:.3f}")
+--- [10] code
+comparison_rows = []
+for model_name, model_predictions in predictions.items():
+    for split_name in ("val", "test"):
+        probabilities = model_predictions[f"{split_name}_probabilities"]
+        labels = model_predictions[f"{split_name}_labels"]
+        for threshold_name, threshold in [("0.5", 0.5), ("val-Youden", model_predictions["threshold"])]:
+            metrics = compute_classification_metrics(probabilities, labels, threshold=threshold)
+            comparison_rows.append(
+                {
+                    "modelo": model_name,
+                    "split": split_name,
+                    "umbral": f"{threshold_name} ({threshold:.3f})",
+                    "AUC": metrics["auc"],
+                    "F1": metrics["f1"],
+                    "Accuracy": metrics["accuracy"],
+                    "matriz_confusion": metrics["confusion_matrix"],
+                }
+            )
+comparison_table = pd.DataFrame(comparison_rows)
+comparison_table.round(4)
+--- [11] code
+# Vista compacta del TEST (la comparación que importa), ordenada por umbral
+test_comparison = (
+    comparison_table[comparison_table["split"] == "test"]
+    .drop(columns="split")
+    .sort_values(["umbral", "modelo"])
+    .round(4)
+)
+test_comparison
+--- [12] code
+tuned_predictions = predictions["ajustado"]
+tuned_threshold = tuned_predictions["threshold"]
+test_predicted_labels = (tuned_predictions["test_probabilities"] >= tuned_threshold).astype(int)
+
+print(f"Modelo ajustado, TEST, umbral={tuned_threshold:.3f} (elegido en validación)\n")
+print(
+    classification_report(
+        tuned_predictions["test_labels"].astype(int),
+        test_predicted_labels,
+        target_names=["sano (0)", "riesgo (1)"],
+        digits=4,
+    )
+)
+
+confusion = compute_classification_metrics(
+    tuned_predictions["test_probabilities"], tuned_predictions["test_labels"], tuned_threshold
+)["confusion_matrix"]
+figure, axis = plt.subplots(figsize=(4, 4))
+axis.imshow(confusion, cmap="Blues")
+for row in range(2):
+    for column in range(2):
+        axis.text(column, row, confusion[row][column], ha="center", va="center", fontsize=14)
+axis.set(
+    xticks=[0, 1], yticks=[0, 1],
+    xticklabels=["sano", "riesgo"], yticklabels=["sano", "riesgo"],
+    xlabel="Predicho", ylabel="Real", title="Matriz de confusión (test, ajustado)",
+)
+plt.tight_layout()
+plt.savefig(figures_dir / "tuned_confusion_matrix_test.png", dpi=110)
+plt.show()
+--- [13] markdown
+## 4. Grad-CAM del modelo ajustado (test)
+
+Mismo método que en `02_train_resnet152.ipynb` (`src/explain.py`, hooks sobre `layer4[-1]`). Se usa el umbral elegido en validación para definir TP / TN / FP / FN; se muestran los cuatro ejemplos más confiados de cada grupo. Figuras en `artifacts/gradcam/tuned_*.png`.
+--- [14] code
+GRADCAM_DIR = PROJECT_ROOT / "artifacts" / "gradcam"
+
+gradcam_samples = compute_gradcam_samples(
+    tuned_model,
+    test_dataframe,
+    tuned_predictions["test_probabilities"],
+    tuned_predictions["test_labels"],
+    threshold=tuned_threshold,
+    image_size=tuned_config.image_size,
+    examples_per_group=4,
+)
+group_titles = {
+    "TP": "Ajustado - verdaderos positivos (riesgo detectado)",
+    "TN": "Ajustado - verdaderos negativos (sano)",
+    "FP": "Ajustado - falsos positivos (sano predicho como riesgo)",
+    "FN": "Ajustado - falsos negativos (riesgo no detectado)",
+}
+for group, group_title in group_titles.items():
+    group_samples = [s for s in gradcam_samples if s["group"] == group]
+    figure = plot_gradcam_grid(
+        group_samples, title=group_title, save_path=GRADCAM_DIR / f"tuned_{group}.png"
+    )
+    if figure is not None:
+        plt.show()
+
+########## notebooks\other_experiments\02_train_resnet152.ipynb
+--- [0] markdown
+# RFMiD — entrenar ResNet-152 (Disease_Risk)
+
+**Nota:** el usuario pidió "ResNet-150"; no existe en torchvision. Usamos **ResNet-152** ImageNet pretrained.
+
+- Focal Loss (desbalance)
+- Fine-tuning: `layer4` + `fc` entrenables; resto congelado
+- 20 épocas por defecto; cada época imprime `train_loss` y `val_loss`
+
+Equivalente CLI: `python scripts/train.py`
+--- [1] code
+import sys
+from pathlib import Path
+
+# Raíz del proyecto: se sube desde el directorio actual hasta encontrar src/ y requirements.txt
+# (funciona desde notebooks/, notebooks/best_model/ o notebooks/other_experiments/)
+PROJECT_ROOT = next(
+    directory
+    for directory in (Path.cwd().resolve(), *Path.cwd().resolve().parents)
+    if (directory / "src").is_dir() and (directory / "requirements.txt").is_file()
+)
+if str(PROJECT_ROOT) not in sys.path:
+    sys.path.insert(0, str(PROJECT_ROOT))
+
+from src.config import default_config
+from src.data import create_dataloaders
+from src.evaluate import evaluate_loader, format_metrics
+from src.train import get_device, load_best_checkpoint_for_eval, train_model
+
+config = default_config()
+print(f"epochs={config.epochs}, batch_size={config.batch_size}, device={get_device()}")
+--- [2] code
+(
+    train_loader,
+    val_loader,
+    test_loader,
+    train_dataframe,
+    val_dataframe,
+    test_dataframe,
+) = create_dataloaders(config)
+
+for name, dataframe in [
+    ("train", train_dataframe),
+    ("val", val_dataframe),
+    ("test", test_dataframe),
+]:
+    print(name, len(dataframe), dataframe["disease_risk"].value_counts().to_dict())
+--- [3] code
+# Entrena 20 épocas (config.epochs). Por época: train_loss | val_loss | AUC | F1 | Acc
+# Si ya existe el checkpoint del baseline NO se reentrena (ponlo a True para forzarlo).
+FORCE_RETRAIN = False
+
+baseline_checkpoint_path = config.checkpoint_dir / config.best_checkpoint_name
+if FORCE_RETRAIN or not baseline_checkpoint_path.is_file():
+    train_model(train_loader, val_loader, config)
+else:
+    print(f"Checkpoint existente, se omite el entrenamiento: {baseline_checkpoint_path}")
+--- [4] code
+device = get_device()
+model = load_best_checkpoint_for_eval(config, device)
+
+val_metrics = evaluate_loader(model, val_loader, device)
+test_metrics = evaluate_loader(model, test_loader, device)
+print(format_metrics(val_metrics, "val"))
+print(format_metrics(test_metrics, "test"))
+--- [5] markdown
+## Grad-CAM: ¿en qué se fija el modelo?
+
+Grad-CAM (implementado a mano en `src/explain.py`) usa los *hooks* de la última capa convolucional (`layer4[-1]`): pondera cada mapa de activación por la media de su gradiente respecto al **logit de Disease_Risk** y aplica ReLU. El resultado es un mapa de calor de las regiones que *empujan* la predicción hacia "riesgo".
+
+Se muestran ejemplos del **test** (umbral 0.5, el de las métricas de arriba): los verdaderos positivos (TP) y negativos (TN) más confiados, y los errores más confiados (FP y FN). Las figuras se guardan en `artifacts/gradcam/`.
+--- [6] code
+import matplotlib.pyplot as plt
+
+from src.evaluate import collect_predictions
+from src.explain import compute_gradcam_samples, plot_gradcam_grid
+
+GRADCAM_DIR = PROJECT_ROOT / "artifacts" / "gradcam"
+DECISION_THRESHOLD = 0.5
+
+test_probabilities, test_labels, _ = collect_predictions(model, test_loader, device)
+gradcam_samples = compute_gradcam_samples(
+    model,
+    test_dataframe,
+    test_probabilities,
+    test_labels,
+    threshold=DECISION_THRESHOLD,
+    image_size=config.image_size,
+    examples_per_group=4,
+)
+print({group: sum(s['group'] == group for s in gradcam_samples) for group in ['TP', 'TN', 'FP', 'FN']})
+--- [7] code
+group_titles = {
+    "TP": "Baseline - verdaderos positivos (riesgo detectado)",
+    "TN": "Baseline - verdaderos negativos (sano)",
+    "FP": "Baseline - falsos positivos (sano predicho como riesgo)",
+    "FN": "Baseline - falsos negativos (riesgo no detectado)",
+}
+for group, group_title in group_titles.items():
+    group_samples = [s for s in gradcam_samples if s["group"] == group]
+    figure = plot_gradcam_grid(
+        group_samples,
+        title=group_title,
+        save_path=GRADCAM_DIR / f"baseline_{group}.png",
+    )
+    if figure is not None:
+        plt.show()
+--- [8] markdown
+### Lectura cualitativa (baseline, test)
+
+- **TP:** el calor se concentra en la **región central/macular y paramacular**, de forma amplia y difusa. Cuando hay lesiones visibles (exudados amarillos, hemorragias) el calor las cubre, pero en imágenes borrosas u opacas (medios turbios) se activa sobre casi todo el disco central: el modelo parece usar también *calidad/aspecto global de la imagen* y no solo lesiones localizadas.
+- **TN:** activación casi nula en todo el fondo de ojo. Son retinas nítidas con disco óptico, vasos y mácula normales; no hay evidencia a favor de "riesgo" (el mapa solo explica la clase positiva).
+- **FP:** el calor cae en **zonas concretas del interior** (arcos vasculares, parte superior/lateral) con probabilidades moderadas (0.60–0.81): variaciones de iluminación o textura que el modelo confunde con patología.
+- **FN:** el calor se va **a las esquinas / el borde del campo** (fuera de la retina útil) o a zonas sin lesión; p. ej. la imagen 166 tiene una lesión anular visible en la mácula y el modelo no la mira. Son casos de patologías sutiles que el modelo no capta, y señalan cierta dependencia de artefactos del borde.
+
+Conclusión: el modelo se centra en la retina central (donde está la patología más habitual) y casi nunca en el disco óptico por sí solo; los errores se asocian a artefactos de borde, iluminación y patologías sutiles. Grad-CAM es cualitativo: sirve para detectar atajos, no para demostrar que el modelo razona como un clínico.
+
+########## notebooks\other_experiments\03_optuna_resnet152.ipynb
+--- [0] markdown
+# RFMiD — búsqueda de hiperparámetros con Optuna (ResNet-152, Disease_Risk)
+
+**Objetivo:** maximizar el **AUC de validación**.
+
+**Sin fuga de datos:** cada trial ajusta los pesos con *train* y se puntúa **solo con *validación***. El conjunto de *test* no se carga en ningún momento de este notebook (`src/tuning.py` no lo lee); queda reservado para la evaluación final en `02.1_train_resnet152.ipynb`.
+
+## Presupuesto de cómputo (régimen reducido)
+
+Esta máquina **no tiene GPU** (solo CPU, 4 hilos). Medido: una pasada forward+backward de 16 imágenes a 224 px cuesta ~3.1 s con `layer4` entrenable y ~6.6 s con `layer3+layer4`, es decir, ~11 min por época completa (train + val) a 224 px. Entrenar 20 épocas por trial es inviable, así que **cada trial usa un régimen reducido**:
+
+| Ajuste | Valor | Motivo |
+|---|---|---|
+| Tamaño de imagen | 160 px (el final usa 224) | ~2x más rápido |
+| Train | 50 % estratificado (960 imgs) | ~2x más rápido, mantiene la proporción de clases |
+| Validación | completa (640 imgs) | el AUC con pocos negativos es ruidoso; no se recorta |
+| Épocas por trial | 4 | suficiente para ordenar configuraciones; lo prolongado lo decide el entrenamiento final |
+| Nº de trials | 12 | ~2 h de CPU |
+
+Las imágenes se reescalan una sola vez y se guardan en RAM (evita decodificar PNGs de 2144x1424 en cada época). **Caveat:** el óptimo en este régimen corto/pequeño puede favorecer LR altos y convergencia rápida; es una guía, no el óptimo del entrenamiento completo.
+--- [1] code
+import json
+import os
+import sys
+import time
+from pathlib import Path
+
+# Raíz del proyecto: se sube desde el directorio actual hasta encontrar src/ y requirements.txt
+# (funciona desde notebooks/, notebooks/best_model/ o notebooks/other_experiments/)
+PROJECT_ROOT = next(
+    directory
+    for directory in (Path.cwd().resolve(), *Path.cwd().resolve().parents)
+    if (directory / "src").is_dir() and (directory / "requirements.txt").is_file()
+)
+if str(PROJECT_ROOT) not in sys.path:
+    sys.path.insert(0, str(PROJECT_ROOT))
+os.environ.setdefault("TORCH_HOME", str(PROJECT_ROOT / "artifacts" / "torch_cache"))
+
+import matplotlib.pyplot as plt
+import optuna
+
+from src.config import default_config
+from src.train import get_device
+from src.tuning import (
+    BASELINE_PARAMS,
+    build_tuning_data,
+    count_finished_trials,
+    create_objective,
+    trials_to_dataframe,
+)
+
+base_config = default_config()
+print(f"device={get_device()} | optuna={optuna.__version__}")
+--- [2] markdown
+## Espacio de búsqueda y justificación
+
+| Hiperparámetro | Rango | Por qué |
+|---|---|---|
+| `learning_rate` | 1e-5 … 1e-3 (log) | El baseline usa 1e-4; la escala es multiplicativa, de ahí la búsqueda logarítmica. |
+| `weight_decay` | 1e-6 … 1e-2 (log) | Regularización de AdamW; con ~2k imágenes y `layer4` (~15 M parámetros) el sobreajuste es el riesgo principal. |
+| `focal_gamma` | 1.0 … 3.0 | Cuánto se ignoran los ejemplos fáciles; 2.0 es el valor estándar, se explora a ambos lados. |
+| `focal_alpha` | 0.15 … 0.75 | Peso de la clase **positiva** (Disease_Risk=1, ~79 % de los datos). Un peso balanceado por frecuencia inversa sería ≈ 0.21 (el baseline 0.25 ya está ahí), pero el AUC no depende de un umbral y a veces gana pesar más la clase mayoritaria, así que se explora hacia arriba. |
+| `batch_size` | 8 / 16 / 32 | Ruido del gradiente vs. estabilidad de BatchNorm; lotes pequeños dan más actualizaciones por época. |
+| `unfreeze_layer3` | False / True | Más capacidad de adaptación al dominio de fondo de ojo (imágenes muy distintas de ImageNet) a cambio de coste y más riesgo de sobreajuste. |
+| `lr_scheduler` | none / cosine / plateau | `none` = baseline; `cosine` decae suavemente; `plateau` reduce el LR a la mitad si el AUC se estanca 2 épocas. |
+
+**Excluido:** la fuerza de *data augmentation*. Con un 50 % de train y 4 épocas su efecto no se puede medir de forma fiable, y se mantiene la augmentation del baseline.
+
+**Sampler / pruner:** `TPESampler(seed=42)` (reproducible) y `MedianPruner` con `trial.report` del AUC de validación tras cada época (3 trials de arranque sin podar y sin podar la primera época). El primer trial es **el baseline** (`enqueue_trial`), para tener una referencia en el mismo régimen reducido.
+--- [3] code
+IMAGE_SIZE = 160
+TRAIN_FRACTION = 0.5
+EPOCHS_PER_TRIAL = 4
+N_TRIALS = 12
+TIMEOUT_SECONDS = 3 * 3600  # red de seguridad: no lanza trials nuevos pasado este tiempo
+
+start = time.time()
+tuning_data = build_tuning_data(base_config, image_size=IMAGE_SIZE, train_fraction=TRAIN_FRACTION)
+print(
+    f"train={len(tuning_data.train_dataset)} imgs, val={len(tuning_data.val_dataset)} imgs, "
+    f"cache en {time.time() - start:.0f}s"
+)
+--- [4] code
+optuna_dir = PROJECT_ROOT / "artifacts" / "optuna"
+optuna_dir.mkdir(parents=True, exist_ok=True)
+storage_url = f"sqlite:///{(optuna_dir / 'study.db').as_posix()}"
+
+study = optuna.create_study(
+    study_name="resnet152_disease_risk",
+    storage=storage_url,
+    load_if_exists=True,  # reanudable: si se interrumpe, volver a ejecutar continúa el estudio
+    direction="maximize",
+    sampler=optuna.samplers.TPESampler(seed=42),
+    pruner=optuna.pruners.MedianPruner(n_startup_trials=3, n_warmup_steps=1),
+)
+if len(study.trials) == 0:
+    study.enqueue_trial(BASELINE_PARAMS)  # trial 0 = configuración del baseline
+
+remaining_trials = N_TRIALS - count_finished_trials(study)
+print(f"Trials terminados: {count_finished_trials(study)} | pendientes: {remaining_trials}")
+
+optimization_start = time.time()
+if remaining_trials > 0:
+    study.optimize(
+        create_objective(tuning_data, base_config, EPOCHS_PER_TRIAL),
+        n_trials=remaining_trials,
+        timeout=TIMEOUT_SECONDS,
+    )
+print(f"Optimización: {(time.time() - optimization_start) / 60:.1f} min en esta ejecución")
+--- [5] markdown
+## Resultados
+--- [6] code
+print(f"Mejor trial: #{study.best_trial.number}")
+print(f"Mejor AUC de validación (régimen reducido): {study.best_value:.4f}")
+print("Mejores hiperparámetros:")
+for name, value in study.best_params.items():
+    print(f"  {name}: {value}")
+
+trials_table = trials_to_dataframe(study)
+trials_table
+--- [7] code
+from optuna.visualization.matplotlib import plot_optimization_history, plot_param_importances
+
+plot_optimization_history(study)
+plt.title("Historia de optimización (AUC de validación)")
+plt.tight_layout()
+plt.savefig(optuna_dir / "optimization_history.png", dpi=110)
+plt.show()
+
+completed_trials = [t for t in study.trials if t.state == optuna.trial.TrialState.COMPLETE]
+if len(completed_trials) >= 5:
+    plot_param_importances(study)
+    plt.title("Importancia de hiperparámetros")
+    plt.tight_layout()
+    plt.savefig(optuna_dir / "param_importances.png", dpi=110)
+    plt.show()
+else:
+    print("Pocos trials completados para estimar importancias.")
+--- [8] code
+best_params_path = optuna_dir / "best_params.json"
+payload = {
+    "best_params": study.best_params,
+    "best_val_auc_reduced_regime": study.best_value,
+    "best_trial_number": study.best_trial.number,
+    "search_regime": {
+        "image_size": IMAGE_SIZE,
+        "train_fraction": TRAIN_FRACTION,
+        "epochs_per_trial": EPOCHS_PER_TRIAL,
+        "n_trials": N_TRIALS,
+    },
+}
+best_params_path.write_text(json.dumps(payload, indent=2), encoding="utf-8")
+print(f"Guardado en {best_params_path}")
+--- [9] code
+# Optuna solo dibuja los trials COMPLETOS; aquí se muestran todos usando el mejor AUC
+# de validación que alcanzó cada trial antes de terminar o ser podado.
+trial_best_auc = {
+    t.number: max(t.intermediate_values.values())
+    for t in study.trials
+    if t.intermediate_values
+}
+baseline_auc = trial_best_auc[0]
+
+figure, (history_axis, curves_axis) = plt.subplots(1, 2, figsize=(14, 4.5))
+for trial in study.trials:
+    is_complete = trial.state == optuna.trial.TrialState.COMPLETE
+    history_axis.scatter(
+        trial.number,
+        trial_best_auc[trial.number],
+        color="tab:blue" if is_complete else "tab:orange",
+        label="completo" if is_complete else "podado",
+    )
+    steps, values = zip(*sorted(trial.intermediate_values.items()))
+    curves_axis.plot(steps, values, marker="o", alpha=0.8, label=f"#{trial.number}")
+history_axis.axhline(baseline_auc, color="gray", linestyle="--", label="baseline (trial 0)")
+handles, labels = history_axis.get_legend_handles_labels()
+unique = dict(zip(labels, handles))
+history_axis.legend(unique.values(), unique.keys())
+history_axis.set(title="Mejor AUC de val. por trial (todos)", xlabel="Trial", ylabel="AUC val.")
+curves_axis.set(title="AUC de val. por época", xlabel="Época", ylabel="AUC val.")
+curves_axis.legend(ncol=2, fontsize=7)
+plt.tight_layout()
+plt.savefig(optuna_dir / "all_trials.png", dpi=110)
+plt.show()
+--- [10] markdown
+### Lectura de resultados
+
+- Se ejecutaron **12 trials** (4 completos, 8 podados) en ~2.4 h de CPU. El **mejor** fue el trial #2: `layer3+layer4` entrenables, LR ≈ 4.6e-4, `ReduceLROnPlateau`, gamma ≈ 1.36, alpha ≈ 0.26, batch 16, weight decay ≈ 7e-6, con AUC de validación 0.9432 en el régimen reducido.
+- **La mejora es marginal:** el baseline (trial 0) obtuvo 0.9415 y el resto de trials está en 0.93–0.943. Con 134 negativos en validación la incertidumbre del AUC es del orden de ±0.01, así que **las diferencias entre los mejores trials no son estadísticamente distinguibles**. El espacio es bastante plano alrededor del baseline; lo único consistentemente peor son los trials con **batch 8** (#1, #5, #8: mejor AUC 0.931, 0.921, 0.910; el #5 llegó a caer a 0.846 en la época 3), con curvas más ruidosas.
+- Los 4 trials que llegaron a la época 4 (#0, #1, #2, #6) tuvieron su mejor AUC en la época 3 y bajaron en la 4 (ruido y/o sobreajuste con solo 960 imágenes); en el entrenamiento completo, el *early stopping* y la selección del checkpoint por AUC de validación cubren esto.
+- **Importancia de hiperparámetros:** Optuna solo la estima con trials completos y aquí hay 4 (insuficientes), por lo que no se calcula.
+- El mejor trial descongela `layer3` (≈1.7x más coste por época que el baseline). Se espera, como mucho, una mejora modesta del modelo final sobre el baseline.
+
+########## notebooks\other_experiments\04_compare_models.ipynb
+--- [0] markdown
+# RFMiD — comparación de arquitecturas (Optuna por modelo + Grad-CAM)
+
+Compara varias arquitecturas ImageNet de `torchvision` en **Disease_Risk** (binario, ~79 % positivos). Cada una tiene **su propio estudio Optuna** (objetivo: **AUC de validación**) y se reentrena con sus mejores hiperparámetros. El **ResNet-152** del proyecto entra como referencia: se reutiliza su checkpoint, **no se reentrena**.
+
+**Sin fuga de datos:** Optuna solo ve *train* (ajuste) y *validación* (puntuación); el umbral de decisión se elige **solo en validación** (índice de Youden) y se aplica sin cambios a *test*. El *test* se usa únicamente para informar métricas y para elegir las imágenes ilustrativas de Grad-CAM.
+
+## Modelos y por qué
+
+| Modelo | Params (M) | GFLOPs | Motivo |
+|---|---|---|---|
+| **ResNet-152** (referencia) | 58 | 11.5 | Baseline del proyecto; se reutiliza su checkpoint. |
+| **ResNet-50** | 24 | 4.1 | Misma familia residual con ~3x menos capas (50 vs 152): aísla el efecto de la **profundidad** y es una referencia mucho más barata en CPU. Su `layer4` tiene los mismos ~15 M de parámetros que el del ResNet-152 → capacidad de *fine-tuning* comparable. |
+| **DenseNet-121** (pedido) | 8 | 2.9 | Conexiones densas que reutilizan rasgos de baja y alta resolución; muy usada en imagen médica (CheXNet). Pocos parámetros → buena para ~2k imágenes. |
+| **EfficientNet-B0** | 5 | 0.4 | Escalado compuesto, el modelo más ligero: ¿basta un modelo pequeño con tan pocos datos? Es el más barato de entrenar. |
+| **ConvNeXt-Tiny** | 28 | 4.5 | CNN "modernizada" con receta de Transformer (LayerNorm, convoluciones 7x7 *depthwise*, GELU); mejor precisión en ImageNet (82.1 %) que las anteriores. Mantiene mapas 2D, así que **Grad-CAM se aplica directamente**. |
+
+**Descartados:** Swin-T / ViT (la atención con ventanas o parches exige reconstruir el mapa 2D desde tokens y el tamaño de entrada fijo; Grad-CAM deja de ser directo) y RegNet (muy parecido a ResNet, aporta poca diversidad). Mantener 4 modelos nuevos mantiene el coste razonable en CPU.
+
+## Política de congelación
+
+En todos: backbone congelado; se entrenan la **cabeza** (1 logit) y los **últimos `unfrozen_blocks` grupos de bloques** (cada grupo = etapa + el *downsampling* que la precede). `unfrozen_blocks` es un hiperparámetro de Optuna (1 … N). Se describe por modelo en la tabla de más abajo.
+--- [1] code
+import json
+import os
+import sys
+import time
+from pathlib import Path
+
+# Raíz del proyecto: se sube desde el directorio actual hasta encontrar src/ y requirements.txt
+# (funciona desde notebooks/, notebooks/best_model/ o notebooks/other_experiments/)
+PROJECT_ROOT = next(
+    directory
+    for directory in (Path.cwd().resolve(), *Path.cwd().resolve().parents)
+    if (directory / "src").is_dir() and (directory / "requirements.txt").is_file()
+)
+if str(PROJECT_ROOT) not in sys.path:
+    sys.path.insert(0, str(PROJECT_ROOT))
+os.environ.setdefault("TORCH_HOME", str(PROJECT_ROOT / "artifacts" / "torch_cache"))
+
+import matplotlib.pyplot as plt
+import optuna
+import pandas as pd
+import torch
+
+from src.comparison import (
+    ArtifactPaths,
+    build_comparison_table,
+    build_new_model_entries,
+    evaluate_entry,
+    find_resnet152_references,
+    make_eval_loader,
+    run_architecture_study,
+    save_best_params,
+    subsample_dataframe,
+    train_architecture,
+)
+from src.comparison_plots import (
+    plot_confusion_matrices,
+    plot_metric_bars,
+    plot_roc_curves,
+    plot_study_histories,
+    plot_training_curves,
+)
+from src.config import default_config
+from src.data import build_split_dataframe
+from src.gradcam_compare import (
+    GROUP_ORDER,
+    compute_gradcam_for_selection,
+    load_or_create_selected_images,
+    plot_gradcam_model_comparison,
+)
+from src.models_zoo import describe_architectures, load_architecture_checkpoint
+from src.train import get_device
+from src.tuning import build_tuning_data, cache_eval_dataset
+--- [2] markdown
+## Configuración
+
+Todo lo que cuesta tiempo se controla aquí. **Estimaciones orientativas** (extrapoladas por FLOPs desde el ResNet-152 medido en esta máquina: ~11 min/época a 224 px en CPU de 4 hilos; la CPU compartida con otros procesos las empeora):
+
+| Fase | CPU (4 hilos) | GPU |
+|---|---|---|
+| Optuna, por modelo (10 trials x ≤4 épocas, 160 px, 50 % de train, con poda) | ResNet-50 ~1 h · DenseNet-121 ~1 h · EfficientNet-B0 ~0.5 h · ConvNeXt-T ~1.2 h | minutos por modelo |
+| Entrenamiento final (10 épocas, 224 px, train completo), por época | ResNet-50 ~4 min · DenseNet-121 ~5 min · EfficientNet-B0 ~2 min · ConvNeXt-T ~5 min (≈1.5x más con 2 grupos descongelados) | ~10-30 s |
+| Total aproximado | **~4 h de Optuna + ~3 h de entrenamiento final** | **< 1 h** |
+
+Los estudios (`artifacts/optuna/compare_<modelo>.db`) y los checkpoints son **reanudables**: si se interrumpe, volver a ejecutar continúa donde quedó, y un modelo ya entrenado no se reentrena (salvo `FORCE_RETRAIN = True`). Para una primera pasada barata baja `N_TRIALS` (p. ej. 4) y `FINAL_EPOCHS` (p. ej. 5).
+
+`SMOKE_TEST` (o la variable de entorno `RETINA_SMOKE_TEST=1`) ejecuta todo el flujo con 2 trials, 1 época, imágenes de 64 px y un subconjunto minúsculo, **escribiendo en `artifacts/smoke_test/`**. Solo sirve para comprobar que el código funciona; sus métricas no significan nada.
+--- [3] code
+SMOKE_TEST = os.environ.get("RETINA_SMOKE_TEST") == "1"
+
+ARCHITECTURES_TO_COMPARE = ["resnet50", "densenet121", "efficientnet_b0", "convnext_tiny"]
+
+# --- Optuna (régimen reducido por trial, igual que el notebook 03) ---
+N_TRIALS = 10                  # trials por arquitectura
+EPOCHS_PER_TRIAL = 4           # épocas por trial
+TUNING_IMAGE_SIZE = 160        # px durante la búsqueda
+TUNING_TRAIN_FRACTION = 0.5    # fracción estratificada de train en la búsqueda
+TIMEOUT_PER_STUDY_SECONDS = 2.5 * 3600  # red de seguridad por arquitectura
+
+# --- Entrenamiento final con los mejores hiperparámetros ---
+FINAL_EPOCHS = 10              # el baseline usó 20; reducido por coste en CPU
+FINAL_IMAGE_SIZE = 224
+FINAL_TRAIN_FRACTION = 1.0
+EARLY_STOPPING_PATIENCE = 4
+FORCE_RETRAIN = False
+
+# --- Evaluación / Grad-CAM ---
+VAL_FRACTION = 1.0
+TEST_FRACTION = 1.0
+GRADCAM_EXAMPLES_PER_GROUP = 4  # igual que en el notebook 02
+GRADCAM_SELECTION_THRESHOLD = 0.5  # igual que en el notebook 02
+
+if SMOKE_TEST:
+    N_TRIALS, EPOCHS_PER_TRIAL, FINAL_EPOCHS = 2, 1, 1
+    TUNING_IMAGE_SIZE = FINAL_IMAGE_SIZE = 64
+    TUNING_TRAIN_FRACTION = FINAL_TRAIN_FRACTION = 0.02
+    VAL_FRACTION = TEST_FRACTION = 0.1
+    GRADCAM_EXAMPLES_PER_GROUP = 1
+    TIMEOUT_PER_STUDY_SECONDS = None
+
+base_config = default_config()
+paths = ArtifactPaths(PROJECT_ROOT / "artifacts" / ("smoke_test" if SMOKE_TEST else ""))
+paths.create_directories()
+device = get_device()
+print(f"SMOKE_TEST={SMOKE_TEST} | device={device} | optuna={optuna.__version__} | salida: {paths.root}")
+--- [4] markdown
+## Arquitecturas: parámetros entrenables y capa de Grad-CAM
+
+Capa objetivo de Grad-CAM = **última capa con mapa espacial 2D** (justo antes del *pooling* global y la cabeza):
+
+| Modelo | Capa Grad-CAM | Grupos descongelables (del final hacia atrás) |
+|---|---|---|
+| ResNet-50 / 152 | `layer4[-1]` (`layer4.2`) | `layer4` · `layer3` |
+| DenseNet-121 | `features.norm5` (salida de `denseblock4` normalizada) | `norm5 + denseblock4 + transition3` · `denseblock3 + transition2` |
+| EfficientNet-B0 | `features.8` (conv 1x1 final, 1280 canales) | `features.8 + 7` · `features.6` · `features.5 + 4` |
+| ConvNeXt-Tiny | `features.7` (etapa 4) | `features.7 + 6` · `features.5 + 4` |
+
+*Nota DenseNet:* `torchvision` aplica un `ReLU` *in-place* tras `norm5`, así que el gradiente que captura el hook es el de la pre-activación (enmascarado por el ReLU). Es la variante habitual de Grad-CAM para DenseNet, pero los mapas no son idénticos al Grad-CAM "puro" de los demás.
+--- [5] code
+architecture_summary = pd.DataFrame(describe_architectures(["resnet152"] + ARCHITECTURES_TO_COMPARE))
+architecture_summary
+--- [6] markdown
+## 1. Datos en RAM
+
+Las imágenes se reescalan **una sola vez** y se guardan en RAM (decodificar PNGs de 2144x1424 en cada época sería inviable en CPU). Para la búsqueda se usa un subconjunto estratificado de *train* a `TUNING_IMAGE_SIZE` y la **validación completa**. El *test* no se carga en esta fase.
+--- [7] code
+start_time = time.time()
+tuning_data = build_tuning_data(
+    base_config,
+    image_size=TUNING_IMAGE_SIZE,
+    train_fraction=TUNING_TRAIN_FRACTION,
+    val_fraction=VAL_FRACTION,
+)
+print(
+    f"train={len(tuning_data.train_dataset)} imgs, val={len(tuning_data.val_dataset)} imgs, "
+    f"cache en {time.time() - start_time:.0f}s"
+)
+--- [8] markdown
+## 2. Optuna: un estudio por arquitectura
+
+**Objetivo:** maximizar el AUC de validación (mejor valor alcanzado en el trial). **Sampler:** `TPESampler(seed=42)`. **Pruner:** `MedianPruner(n_startup_trials=3, n_warmup_steps=1)` con `trial.report` tras cada época. El trial 0 de cada estudio es el **baseline** (`lr=1e-4`, `wd=1e-4`, `gamma=2`, `alpha=0.25`, batch 16, 1 grupo descongelado, sin scheduler) para tener una referencia en el mismo régimen reducido.
+
+| Hiperparámetro | Rango | Nota |
+|---|---|---|
+| `learning_rate` | 1e-5 … 1e-3 (log) | Escala multiplicativa. ConvNeXt suele preferir LR menores; TPE lo descubrirá. |
+| `weight_decay` | 1e-6 … 1e-2 (log) | Regularización de AdamW. |
+| `focal_gamma` | 1.0 … 3.0 | Cuánto se ignoran los ejemplos fáciles. |
+| `focal_alpha` | 0.15 … 0.75 | Peso de la clase positiva (Disease_Risk = 1). |
+| `batch_size` | 8 / 16 / 32 | Ruido del gradiente vs. estabilidad de BatchNorm. |
+| `unfrozen_blocks` | 1 … N (N = 2 salvo EfficientNet-B0, N = 3) | Capacidad de adaptación al fondo de ojo vs. coste/sobreajuste. |
+| `lr_scheduler` | none / cosine / plateau | `plateau` reduce el LR a la mitad si el AUC no mejora en 2 épocas. |
+
+Cada estudio guarda `artifacts/optuna/compare_<modelo>.db` y, al terminar, `artifacts/optuna/compare_<modelo>_best_params.json`.
+--- [9] code
+search_regime = {
+    "image_size": TUNING_IMAGE_SIZE,
+    "train_fraction": TUNING_TRAIN_FRACTION,
+    "epochs_per_trial": EPOCHS_PER_TRIAL,
+    "n_trials": N_TRIALS,
+}
+
+studies: dict[str, optuna.Study] = {}
+best_params_by_architecture: dict[str, dict] = {}
+for architecture in ARCHITECTURES_TO_COMPARE:
+    study_start = time.time()
+    studies[architecture] = run_architecture_study(
+        architecture,
+        tuning_data,
+        base_config,
+        n_trials=N_TRIALS,
+        epochs_per_trial=EPOCHS_PER_TRIAL,
+        optuna_dir=paths.optuna,
+        timeout_seconds=TIMEOUT_PER_STUDY_SECONDS,
+    )
+    best_params_by_architecture[architecture] = save_best_params(
+        architecture, studies[architecture], paths.optuna, search_regime
+    )
+    print(f"[{architecture}] estudio en {(time.time() - study_start) / 60:.1f} min en esta ejecución")
+--- [10] code
+study_summary = pd.DataFrame(
+    [
+        {
+            "modelo": architecture,
+            "mejor trial": study.best_trial.number,
+            "mejor AUC val (régimen reducido)": study.best_value,
+            "AUC val trial 0 (baseline)": max(study.trials[0].intermediate_values.values()),
+            "completos": sum(t.state == optuna.trial.TrialState.COMPLETE for t in study.trials),
+            "podados": sum(t.state == optuna.trial.TrialState.PRUNED for t in study.trials),
+            **study.best_params,
+        }
+        for architecture, study in studies.items()
+    ]
+)
+display(study_summary.round(5))
+
+plot_study_histories(studies, save_path=paths.figures / "compare_optuna_histories.png")
+plt.show()
+--- [11] markdown
+## 3. Entrenamiento final con los mejores hiperparámetros
+
+Misma pipeline que `02.1`: Focal Loss, AdamW, *early stopping* y **checkpoint por AUC de validación**, a `FINAL_IMAGE_SIZE` con el train completo. Salidas: `artifacts/checkpoints/compare_<modelo>.pt` y `artifacts/logs/compare_<modelo>_history.json` (pérdidas, AUC y segundos por época).
+
+**Caveats de comparabilidad:** (i) el ResNet-152 del baseline se entrenó 20 épocas y con *crops* tomados de las imágenes originales; aquí `FINAL_EPOCHS` épocas y crops de una copia a 1.5x del tamaño final (como en Optuna). (ii) Como en el baseline, el bucle compartido llama a `model.train()`, por lo que las capas BatchNorm congeladas actualizan sus estadísticas (ConvNeXt usa LayerNorm y no se ve afectado). Las diferencias pequeñas entre modelos hay que leerlas con cautela: con 134 negativos en validación el AUC tiene una incertidumbre de ~±0.01.
+--- [12] code
+del tuning_data  # libera RAM antes de cachear a resolución final
+
+final_data = build_tuning_data(
+    base_config,
+    image_size=FINAL_IMAGE_SIZE,
+    train_fraction=FINAL_TRAIN_FRACTION,
+    val_fraction=VAL_FRACTION,
+)
+
+for architecture in ARCHITECTURES_TO_COMPARE:
+    print(f"\n===== {architecture} =====")
+    train_architecture(
+        architecture,
+        best_params_by_architecture[architecture],
+        final_data,
+        base_config,
+        final_epochs=FINAL_EPOCHS,
+        early_stopping_patience=EARLY_STOPPING_PATIENCE,
+        paths=paths,
+        force_retrain=FORCE_RETRAIN,
+    )
+--- [13] markdown
+## 4. Evaluación en validación y test
+
+Se evalúan los modelos nuevos y el ResNet-152 de referencia (`best_resnet152_disease_risk.pt`; si existe, también el ajustado de `02.1`). Para cada modelo el **umbral** es el de Youden calculado **solo con las predicciones de validación**. La tabla está ordenada por **AUC de test**.
+--- [14] code
+test_dataframe = subsample_dataframe(
+    build_split_dataframe(base_config.test_labels_csv, base_config.test_images_dir),
+    TEST_FRACTION,
+    base_config.seed,
+)
+val_loader = make_eval_loader(final_data.val_dataset)
+test_loader = make_eval_loader(cache_eval_dataset(test_dataframe, FINAL_IMAGE_SIZE))
+
+model_entries = find_resnet152_references() + build_new_model_entries(ARCHITECTURES_TO_COMPARE, paths)
+print("Modelos a evaluar:", [entry.display_name for entry in model_entries])
+
+evaluated_models = [evaluate_entry(entry, val_loader, test_loader, device) for entry in model_entries]
+comparison_table = build_comparison_table(evaluated_models)
+comparison_table.to_csv(paths.figures / "compare_metrics.csv", index=False)
+comparison_table.round(4)
+--- [15] code
+plot_metric_bars(comparison_table, save_path=paths.figures / "compare_metric_bars.png")
+plt.show()
+
+plot_roc_curves(evaluated_models, split_name="test", save_path=paths.figures / "compare_roc_test.png")
+plt.show()
+
+plot_confusion_matrices(evaluated_models, save_path=paths.figures / "compare_confusion_matrices_test.png")
+plt.show()
+--- [16] code
+# Curvas de entrenamiento (los modelos sin historial guardado, como el baseline, no aparecen)
+plot_training_curves(evaluated_models, save_path=paths.figures / "compare_training_curves.png")
+plt.show()
+
+# Coste: parámetros entrenables / totales y tiempo medio por época (train + val)
+comparison_table[["modelo", "params entrenables [M]", "params totales [M]", "s/época"]].round(2)
+--- [17] markdown
+## 5. Grad-CAM comparado en las mismas imágenes
+
+**Mismas imágenes que el ResNet-152 del notebook 02.** Allí los ejemplos no se guardan: se eligen con `select_example_indices` sobre el **test**, con las probabilidades del ResNet-152 baseline, umbral **0.5** y los **4 más confiados** de cada grupo (TP / TN / FP / FN). Aquí se repite exactamente ese procedimiento (determinista: mismo checkpoint, mismas imágenes, mismo orden) y el resultado se **persiste en `artifacts/gradcam/selected_images.json`**. Si el archivo ya existe se **reutiliza sin recalcular**, así todos los modelos y todas las ejecuciones usan siempre las mismas imágenes.
+
+Cada fila es una imagen y cada columna un modelo, con la capa objetivo propia de cada arquitectura. El título muestra P(riesgo) y la etiqueta real; va **verde** si el modelo acierta con su umbral de validación y **rojo** si falla. Figuras en `artifacts/gradcam/compare/`.
+--- [18] code
+reference_evaluation = next(
+    (evaluated for evaluated in evaluated_models if evaluated.entry.key == "resnet152_baseline"), None
+)
+if reference_evaluation is None:
+    raise FileNotFoundError(
+        "Falta artifacts/checkpoints/best_resnet152_disease_risk.pt (baseline del notebook 02): "
+        "es necesario para reproducir la selección de imágenes de Grad-CAM."
+    )
+
+selected_images = load_or_create_selected_images(
+    paths.gradcam / "selected_images.json",
+    test_dataframe,
+    reference_evaluation.test_probabilities,
+    reference_evaluation.test_labels,
+    reference_description="ResNet-152 baseline (best_resnet152_disease_risk.pt), test, umbral 0.5",
+    threshold=GRADCAM_SELECTION_THRESHOLD,
+    examples_per_group=GRADCAM_EXAMPLES_PER_GROUP,
+)
+print({group: [image["image_name"] for image in images] for group, images in selected_images.items()})
+--- [19] code
+gradcam_by_model: dict[str, dict] = {}
+decision_thresholds: dict[str, float] = {}
+for evaluated in evaluated_models:
+    entry = evaluated.entry
+    if entry.key == "resnet152_optuna":  # columnas: baseline (como en el notebook 02) + modelos nuevos
+        continue
+    model = load_architecture_checkpoint(entry.architecture, entry.checkpoint_path, device)
+    gradcam_by_model[entry.display_name] = compute_gradcam_for_selection(
+        model, entry.architecture, selected_images, FINAL_IMAGE_SIZE
+    )
+    decision_thresholds[entry.display_name] = evaluated.threshold
+    del model
+    print(f"Grad-CAM calculado: {entry.display_name}")
+--- [20] code
+for group_name in GROUP_ORDER:
+    figure = plot_gradcam_model_comparison(
+        group_name,
+        selected_images,
+        gradcam_by_model,
+        decision_thresholds,
+        save_path=paths.gradcam / "compare" / f"compare_{group_name}.png",
+    )
+    if figure is not None:
+        plt.show()
+--- [21] markdown
+## Conclusiones
+
+> **Plantilla:** rellenar tras ejecutar el notebook con los resultados reales (no se han escrito observaciones sin haberlas visto).
+
+**Rendimiento (test, umbral de validación)**
+- Mejor modelo por AUC / F1: _…_ (diferencia respecto al ResNet-152: _…_; ¿mayor que la incertidumbre de ~±0.01?).
+- Relación coste/beneficio (parámetros entrenables y s/época): _…_
+
+**Hiperparámetros elegidos por Optuna**
+- `unfrozen_blocks`, LR y scheduler más frecuentes: _…_
+
+**Grad-CAM (qué mira cada modelo)**
+- TP: _…_
+- TN: _…_
+- FP: _…_
+- FN: _…_
+- ¿Algún modelo se apoya en bordes/artefactos en lugar de lesiones? _…_
+
+**Limitaciones:** AUC con 134 negativos en validación (ruido alto); régimen reducido de Optuna; épocas finales distintas al baseline; Grad-CAM es cualitativo.

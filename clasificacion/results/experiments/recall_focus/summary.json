@@ -1,0 +1,403 @@
+{
+  "goal": "FN < FP en test y validación con caída mínima de accuracy, F1, AUC",
+  "tolerance_vs_previous_final": 0.005,
+  "answer_a_per_epoch_reweighting": "posible y gratis: error suavizado por imagen + WeightedRandomSampler (src/hard_example_training.py)",
+  "answer_b_recall_centered_criterion": "focal_alpha orientada a positivos + checkpoint por spec_at_fn_lt_fp (src/recall_selection.py)",
+  "warm_start": "best_resnet152_disease_risk_optuna_nocrop.pt",
+  "fine_tune": {
+    "epochs": 4,
+    "learning_rate": 0.0001,
+    "scheduler": "cosine"
+  },
+  "variants": {
+    "control": {
+      "description": "control: loss original, muestreo uniforme",
+      "focal_alpha": 0.26,
+      "weighting_strength": 0.0,
+      "checkpoint": "best_resnet152_recallfocus_control_nocrop.pt",
+      "best_epoch_validation": 1,
+      "val_spec_at_fn_lt_fp": 0.7173552592767388,
+      "val_auc": 0.9373488289776415
+    },
+    "reweight": {
+      "description": "solo re-ponderación por época",
+      "focal_alpha": 0.26,
+      "weighting_strength": 3.0,
+      "checkpoint": "best_resnet152_recallfocus_reweight_nocrop.pt",
+      "best_epoch_validation": 1,
+      "val_spec_at_fn_lt_fp": 0.7173552592767388,
+      "val_auc": 0.9373488289776415
+    },
+    "recallloss": {
+      "description": "solo loss orientada a recall (alpha 0.6)",
+      "focal_alpha": 0.6,
+      "weighting_strength": 0.0,
+      "checkpoint": "best_resnet152_recallfocus_recallloss_nocrop.pt",
+      "best_epoch_validation": 1,
+      "val_spec_at_fn_lt_fp": 0.7173532092501916,
+      "val_auc": 0.9352988024305351
+    },
+    "both": {
+      "description": "re-ponderación + loss orientada a recall",
+      "focal_alpha": 0.6,
+      "weighting_strength": 3.0,
+      "checkpoint": "best_resnet152_recallfocus_both_nocrop.pt",
+      "best_epoch_validation": 1,
+      "val_spec_at_fn_lt_fp": 0.7173532092501916,
+      "val_auc": 0.9352988024305351
+    }
+  },
+  "chosen_variant_validation": "control",
+  "ensemble_members": [
+    "ajustado_nocrop",
+    "baseline_nocrop",
+    "ajustado_original",
+    "baseline_original",
+    "recallfocus_control"
+  ],
+  "tta_views": [
+    "identity",
+    "hflip",
+    "rotate_+10",
+    "rotate_-10"
+  ],
+  "bootstrap": {
+    "resamples": 1000,
+    "confidence_level": 0.95,
+    "seed": 42
+  },
+  "decision_rules_selected_on": "validation only",
+  "thresholds": {
+    "Anterior (05): 4 ResNet-152 + TTA | recall val >= 0.91  [= FINAL de 05]": 0.39925851859152317,
+    "Anterior (05): 4 ResNet-152 + TTA | FN < FP (90 % bootstrap val)  [solo umbral]": 0.3525,
+    "Ensemble elegido + TTA | recall val >= 0.91": 0.40252902954816816,
+    "Ensemble elegido + TTA | FN < FP (90 % bootstrap val)  [NUEVO]": 0.34750000000000003
+  },
+  "val_metrics": {
+    "Anterior (05): 4 ResNet-152 + TTA | recall val >= 0.91  [= FINAL de 05]": {
+      "threshold": 0.39925851859152317,
+      "recall": 0.9110671936758893,
+      "specificity": 0.7761194029850746,
+      "precision": 0.9389002036659878,
+      "accuracy": 0.8828125,
+      "f1": 0.9247743229689067,
+      "auc": 0.9439856055689929,
+      "confusion_matrix_TN_FP_FN_TP": [
+        104,
+        30,
+        45,
+        461
+      ]
+    },
+    "Anterior (05): 4 ResNet-152 + TTA | FN < FP (90 % bootstrap val)  [solo umbral]": {
+      "threshold": 0.3525,
+      "recall": 0.9367588932806324,
+      "specificity": 0.6716417910447762,
+      "precision": 0.915057915057915,
+      "accuracy": 0.88125,
+      "f1": 0.92578125,
+      "auc": 0.9439856055689929,
+      "confusion_matrix_TN_FP_FN_TP": [
+        90,
+        44,
+        32,
+        474
+      ]
+    },
+    "Ensemble elegido + TTA | recall val >= 0.91": {
+      "threshold": 0.40252902954816816,
+      "recall": 0.9110671936758893,
+      "specificity": 0.7611940298507462,
+      "precision": 0.9350912778904665,
+      "accuracy": 0.8796875,
+      "f1": 0.9229229229229229,
+      "auc": 0.9454014512418146,
+      "confusion_matrix_TN_FP_FN_TP": [
+        102,
+        32,
+        45,
+        461
+      ]
+    },
+    "Ensemble elegido + TTA | FN < FP (90 % bootstrap val)  [NUEVO]": {
+      "threshold": 0.34750000000000003,
+      "recall": 0.9426877470355731,
+      "specificity": 0.664179104477612,
+      "precision": 0.9137931034482759,
+      "accuracy": 0.884375,
+      "f1": 0.9280155642023347,
+      "auc": 0.9454014512418146,
+      "confusion_matrix_TN_FP_FN_TP": [
+        89,
+        45,
+        29,
+        477
+      ]
+    }
+  },
+  "test_metrics": {
+    "Anterior (05): 4 ResNet-152 + TTA | recall val >= 0.91  [= FINAL de 05]": {
+      "threshold": 0.39925851859152317,
+      "recall": 0.9288537549407114,
+      "specificity": 0.8805970149253731,
+      "precision": 0.9670781893004116,
+      "accuracy": 0.91875,
+      "f1": 0.9475806451612904,
+      "auc": 0.9706359506813756,
+      "confidence_intervals_95": {
+        "recall": [
+          0.9063135482665026,
+          0.9506903353057199
+        ],
+        "specificity": [
+          0.8244050291872475,
+          0.9313029384084492
+        ],
+        "precision": [
+          0.9504106565371389,
+          0.9814078223904152
+        ],
+        "accuracy": [
+          0.896875,
+          0.9390625
+        ],
+        "f1": [
+          0.9329111548481924,
+          0.9610162203448135
+        ],
+        "auc": [
+          0.9577505467025736,
+          0.9809840379306826
+        ]
+      },
+      "confusion_matrix_TN_FP_FN_TP": [
+        118,
+        16,
+        36,
+        470
+      ]
+    },
+    "Anterior (05): 4 ResNet-152 + TTA | FN < FP (90 % bootstrap val)  [solo umbral]": {
+      "threshold": 0.3525,
+      "recall": 0.9387351778656127,
+      "specificity": 0.8432835820895522,
+      "precision": 0.9576612903225806,
+      "accuracy": 0.91875,
+      "f1": 0.9481037924151696,
+      "auc": 0.9706359506813756,
+      "confidence_intervals_95": {
+        "recall": [
+          0.9174852652259332,
+          0.9585798816568047
+        ],
+        "specificity": [
+          0.7777777777777778,
+          0.902782960199005
+        ],
+        "precision": [
+          0.9388869431071413,
+          0.9740038767395626
+        ],
+        "accuracy": [
+          0.896875,
+          0.9375
+        ],
+        "f1": [
+          0.9331915917843389,
+          0.9608615965312768
+        ],
+        "auc": [
+          0.9577505467025736,
+          0.9809840379306826
+        ]
+      },
+      "confusion_matrix_TN_FP_FN_TP": [
+        113,
+        21,
+        31,
+        475
+      ]
+    },
+    "Ensemble elegido + TTA | recall val >= 0.91": {
+      "threshold": 0.40252902954816816,
+      "recall": 0.9308300395256917,
+      "specificity": 0.8880597014925373,
+      "precision": 0.9691358024691358,
+      "accuracy": 0.921875,
+      "f1": 0.9495967741935484,
+      "auc": 0.9723467642027019,
+      "confidence_intervals_95": {
+        "recall": [
+          0.9089018365057182,
+          0.9518304431599229
+        ],
+        "specificity": [
+          0.8333053691275168,
+          0.9379964221824687
+        ],
+        "precision": [
+          0.9531906226979244,
+          0.983159660156681
+        ],
+        "accuracy": [
+          0.9,
+          0.9421875
+        ],
+        "f1": [
+          0.9349838908605804,
+          0.9630388056609392
+        ],
+        "auc": [
+          0.959332480124954,
+          0.9822758573203598
+        ]
+      },
+      "confusion_matrix_TN_FP_FN_TP": [
+        119,
+        15,
+        35,
+        471
+      ]
+    },
+    "Ensemble elegido + TTA | FN < FP (90 % bootstrap val)  [NUEVO]": {
+      "threshold": 0.34750000000000003,
+      "recall": 0.9446640316205533,
+      "specificity": 0.835820895522388,
+      "precision": 0.956,
+      "accuracy": 0.921875,
+      "f1": 0.9502982107355865,
+      "auc": 0.9723467642027019,
+      "confidence_intervals_95": {
+        "recall": [
+          0.9233791748526523,
+          0.9632666850523993
+        ],
+        "specificity": [
+          0.7727272727272727,
+          0.8943103744417725
+        ],
+        "precision": [
+          0.9369829147548902,
+          0.9727692059707759
+        ],
+        "accuracy": [
+          0.9,
+          0.9406640625
+        ],
+        "f1": [
+          0.9357406131164084,
+          0.9629629629629629
+        ],
+        "auc": [
+          0.959332480124954,
+          0.9822758573203598
+        ]
+      },
+      "confusion_matrix_TN_FP_FN_TP": [
+        112,
+        22,
+        28,
+        478
+      ]
+    }
+  },
+  "paired_differences_test": {
+    "NUEVO - FINAL de 05": {
+      "recall": {
+        "difference": 0.015810276679841917,
+        "ci95": [
+          0.005893909626719096,
+          0.027621679717488017
+        ]
+      },
+      "specificity": {
+        "difference": -0.04477611940298509,
+        "ci95": [
+          -0.08387209564628918,
+          -0.014490147012824481
+        ]
+      },
+      "precision": {
+        "difference": -0.0110781893004116,
+        "ci95": [
+          -0.02117797811221591,
+          -0.0032239383544391664
+        ]
+      },
+      "accuracy": {
+        "difference": 0.0031250000000000444,
+        "ci95": [
+          -0.007851562499999963,
+          0.014062499999999978
+        ]
+      },
+      "f1": {
+        "difference": 0.0027175655742961435,
+        "ci95": [
+          -0.004656242071436272,
+          0.00978009260882564
+        ]
+      },
+      "auc": {
+        "difference": 0.0017108135213262932,
+        "ci95": [
+          -0.0002648953530536894,
+          0.003926409348414125
+        ]
+      }
+    },
+    "NUEVO - solo umbral": {
+      "recall": {
+        "difference": 0.005928853754940677,
+        "ci95": [
+          -0.0020122756742475155,
+          0.014779686558167493
+        ]
+      },
+      "specificity": {
+        "difference": -0.007462686567164201,
+        "ci95": [
+          -0.023814285714285736,
+          0.0
+        ]
+      },
+      "precision": {
+        "difference": -0.0016612903225806663,
+        "ci95": [
+          -0.0057321723411367705,
+          0.0005689715127674938
+        ]
+      },
+      "accuracy": {
+        "difference": 0.0031250000000000444,
+        "ci95": [
+          -0.0031250000000000444,
+          0.010937499999999937
+        ]
+      },
+      "f1": {
+        "difference": 0.002194418320416891,
+        "ci95": [
+          -0.002133043393062036,
+          0.007281235976318329
+        ]
+      },
+      "auc": {
+        "difference": 0.0017108135213262932,
+        "ci95": [
+          -0.0002648953530536894,
+          0.003926409348414125
+        ]
+      }
+    }
+  },
+  "checks": {
+    "FN < FP en test": false,
+    "FN < FP en validación": true,
+    "accuracy no baja más de 0.005 (vs FINAL de 05)": true,
+    "f1 no baja más de 0.005 (vs FINAL de 05)": true,
+    "auc no baja más de 0.005 (vs FINAL de 05)": true
+  },
+  "false_negatives_test": 28,
+  "false_positives_test": 22
+}

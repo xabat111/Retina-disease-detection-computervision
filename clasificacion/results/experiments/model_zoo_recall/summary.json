@@ -1,0 +1,970 @@
+{
+  "goal": "entrenar zoo sin Optuna (letterbox + recall) y comparar como el notebook 04; ensemble+TTA opcional",
+  "recipe": {
+    "variant_from_06": "both",
+    "focal_alpha": 0.6,
+    "epochs": 12
+  },
+  "hyperparameters": {
+    "resnet50": {
+      "learning_rate": 0.0002,
+      "weight_decay": 0.0001,
+      "unfrozen_blocks": 2,
+      "rationale": "Misma familia que el ResNet-152 (lr de Optuna 4.6e-4, aquí algo menor y con cosine); layer3+layer4 entrenables."
+    },
+    "densenet121": {
+      "learning_rate": 0.0002,
+      "weight_decay": 0.0001,
+      "unfrozen_blocks": 2,
+      "rationale": "Receta estándar de fine-tuning con AdamW; denseblock3+4 entrenables (el 4 incluye norm5)."
+    },
+    "efficientnet_b0": {
+      "learning_rate": 0.0003,
+      "weight_decay": 0.0001,
+      "unfrozen_blocks": 3,
+      "rationale": "Modelo muy pequeño (5 M) y barato: tolera lr mayor y se descongelan 3 grupos de bloques."
+    },
+    "convnext_tiny": {
+      "learning_rate": 0.0001,
+      "weight_decay": 0.01,
+      "unfrozen_blocks": 2,
+      "rationale": "Receta ConvNeXt: lr bajo y weight decay alto (1e-2) con AdamW; etapas 3+4 entrenables."
+    }
+  },
+  "comparison_table_youden_no_tta": [
+    {
+      "modelo": "ResNet-152 optuna nocrop (ref.)",
+      "umbral (val, Youden)": 0.5446828603744507,
+      "AUC val": 0.937511061294319,
+      "AUC test": 0.9676862721963306,
+      "F1 test": 0.9139213602550478,
+      "Accuracy test": 0.8734375,
+      "Precision test": 0.9885057471264368,
+      "Recall test": 0.849802371541502,
+      "Especificidad test": 0.9626865671641791,
+      "val FN / FP": "89 / 7",
+      "TN": 129,
+      "FP": 5,
+      "FN": 76,
+      "TP": 430
+    },
+    {
+      "modelo": "DenseNet-121",
+      "umbral (val, Youden)": 0.6661494970321655,
+      "AUC val": 0.9392366232080704,
+      "AUC test": 0.9601498436670404,
+      "F1 test": 0.9113660062565172,
+      "Accuracy test": 0.8671875,
+      "Precision test": 0.9646799116997793,
+      "Recall test": 0.8636363636363636,
+      "Especificidad test": 0.8805970149253731,
+      "val FN / FP": "56 / 17",
+      "TN": 118,
+      "FP": 16,
+      "FN": 69,
+      "TP": 437
+    },
+    {
+      "modelo": "ConvNeXt-Tiny",
+      "umbral (val, Youden)": 0.6184402108192444,
+      "AUC val": 0.9461093740782256,
+      "AUC test": 0.9588667335260457,
+      "F1 test": 0.8837719298245614,
+      "Accuracy test": 0.834375,
+      "Precision test": 0.9926108374384236,
+      "Recall test": 0.7964426877470355,
+      "Especificidad test": 0.9776119402985075,
+      "val FN / FP": "96 / 3",
+      "TN": 131,
+      "FP": 3,
+      "FN": 103,
+      "TP": 403
+    },
+    {
+      "modelo": "EfficientNet-B0",
+      "umbral (val, Youden)": 0.550719141960144,
+      "AUC val": 0.9388089198277388,
+      "AUC test": 0.9502831691345643,
+      "F1 test": 0.9174503657262278,
+      "Accuracy test": 0.8765625,
+      "Precision test": 0.9733924611973392,
+      "Recall test": 0.8675889328063241,
+      "Especificidad test": 0.9104477611940298,
+      "val FN / FP": "59 / 16",
+      "TN": 122,
+      "FP": 12,
+      "FN": 67,
+      "TP": 439
+    },
+    {
+      "modelo": "ResNet-50",
+      "umbral (val, Youden)": 0.571748673915863,
+      "AUC val": 0.9242522565040411,
+      "AUC test": 0.9502094271724382,
+      "F1 test": 0.9219562955254943,
+      "Accuracy test": 0.8828125,
+      "Precision test": 0.9736263736263736,
+      "Recall test": 0.8754940711462451,
+      "Especificidad test": 0.9104477611940298,
+      "val FN / FP": "70 / 19",
+      "TN": 122,
+      "FP": 12,
+      "FN": 63,
+      "TP": 443
+    }
+  ],
+  "individual_models_youden_test": {
+    "ResNet-152 optuna nocrop (ref.)": {
+      "threshold": 0.5446828603744507,
+      "recall": 0.849802371541502,
+      "specificity": 0.9626865671641791,
+      "precision": 0.9885057471264368,
+      "accuracy": 0.8734375,
+      "f1": 0.9139213602550478,
+      "auc": 0.9676862721963306,
+      "confidence_intervals_95": {
+        "recall": [
+          0.8166803825447196,
+          0.8784387790901649
+        ],
+        "specificity": [
+          0.9237271962737741,
+          0.9924839877471456
+        ],
+        "precision": [
+          0.9772701328352014,
+          0.9976961167716568
+        ],
+        "accuracy": [
+          0.8453125,
+          0.8984375
+        ],
+        "f1": [
+          0.8937024393547046,
+          0.9315068493150684
+        ],
+        "auc": [
+          0.9526545633384117,
+          0.9783570867236584
+        ]
+      },
+      "confusion_matrix_TN_FP_FN_TP": [
+        129,
+        5,
+        76,
+        430
+      ],
+      "threshold_rule": "Youden (validation)"
+    },
+    "ResNet-50": {
+      "threshold": 0.571748673915863,
+      "recall": 0.8754940711462451,
+      "specificity": 0.9104477611940298,
+      "precision": 0.9736263736263736,
+      "accuracy": 0.8828125,
+      "f1": 0.9219562955254943,
+      "auc": 0.9502094271724382,
+      "confidence_intervals_95": {
+        "recall": [
+          0.8455217719488607,
+          0.9026390873000213
+        ],
+        "specificity": [
+          0.8571183953033268,
+          0.9552286339005609
+        ],
+        "precision": [
+          0.957776250880902,
+          0.9870444979786233
+        ],
+        "accuracy": [
+          0.85625,
+          0.9078125
+        ],
+        "f1": [
+          0.9030852372669511,
+          0.9385406643105831
+        ],
+        "auc": [
+          0.9314896503856301,
+          0.9670225154010039
+        ]
+      },
+      "confusion_matrix_TN_FP_FN_TP": [
+        122,
+        12,
+        63,
+        443
+      ],
+      "threshold_rule": "Youden (validation)"
+    },
+    "DenseNet-121": {
+      "threshold": 0.6661494970321655,
+      "recall": 0.8636363636363636,
+      "specificity": 0.8805970149253731,
+      "precision": 0.9646799116997793,
+      "accuracy": 0.8671875,
+      "f1": 0.9113660062565172,
+      "auc": 0.9601498436670404,
+      "confidence_intervals_95": {
+        "recall": [
+          0.8349260348242347,
+          0.8917404020398672
+        ],
+        "specificity": [
+          0.8222175141242938,
+          0.929580215669014
+        ],
+        "precision": [
+          0.9460043196544277,
+          0.9800443458980045
+        ],
+        "accuracy": [
+          0.8421875,
+          0.890625
+        ],
+        "f1": [
+          0.8931750264379996,
+          0.9282884040163334
+        ],
+        "auc": [
+          0.9456198883268254,
+          0.9726201165763371
+        ]
+      },
+      "confusion_matrix_TN_FP_FN_TP": [
+        118,
+        16,
+        69,
+        437
+      ],
+      "threshold_rule": "Youden (validation)"
+    },
+    "EfficientNet-B0": {
+      "threshold": 0.550719141960144,
+      "recall": 0.8675889328063241,
+      "specificity": 0.9104477611940298,
+      "precision": 0.9733924611973392,
+      "accuracy": 0.8765625,
+      "f1": 0.9174503657262278,
+      "auc": 0.9502831691345643,
+      "confidence_intervals_95": {
+        "recall": [
+          0.8382434200959721,
+          0.895922368947579
+        ],
+        "specificity": [
+          0.8620619568264648,
+          0.9552483930711406
+        ],
+        "precision": [
+          0.9580433204438716,
+          0.9869051858237906
+        ],
+        "accuracy": [
+          0.8515625,
+          0.903125
+        ],
+        "f1": [
+          0.8992528329119874,
+          0.9354183467741936
+        ],
+        "auc": [
+          0.9309861507642397,
+          0.9662311345836101
+        ]
+      },
+      "confusion_matrix_TN_FP_FN_TP": [
+        122,
+        12,
+        67,
+        439
+      ],
+      "threshold_rule": "Youden (validation)"
+    },
+    "ConvNeXt-Tiny": {
+      "threshold": 0.6184402108192444,
+      "recall": 0.7964426877470355,
+      "specificity": 0.9776119402985075,
+      "precision": 0.9926108374384236,
+      "accuracy": 0.834375,
+      "f1": 0.8837719298245614,
+      "auc": 0.9588667335260457,
+      "confidence_intervals_95": {
+        "recall": [
+          0.7603064833005895,
+          0.8300028957528958
+        ],
+        "specificity": [
+          0.946969696969697,
+          1.0
+        ],
+        "precision": [
+          0.9829257856759497,
+          1.0
+        ],
+        "accuracy": [
+          0.8046484375,
+          0.8609375
+        ],
+        "f1": [
+          0.8605347875591778,
+          0.9040533792289719
+        ],
+        "auc": [
+          0.9428037557498431,
+          0.9721476907257985
+        ]
+      },
+      "confusion_matrix_TN_FP_FN_TP": [
+        131,
+        3,
+        103,
+        403
+      ],
+      "threshold_rule": "Youden (validation)"
+    }
+  },
+  "tta_views": [
+    "identity",
+    "hflip",
+    "rotate_+10",
+    "rotate_-10"
+  ],
+  "bootstrap": {
+    "resamples": 1000,
+    "confidence_level": 0.95,
+    "seed": 42
+  },
+  "ensemble_members_validation_best": [
+    "ajustado_nocrop",
+    "baseline_nocrop",
+    "ajustado_original",
+    "baseline_original",
+    "recallfocus_control",
+    "zoo_resnet50",
+    "zoo_densenet121",
+    "zoo_efficientnet_b0",
+    "zoo_convnext_tiny"
+  ],
+  "thresholds_optional_ensemble": {
+    "Anterior (05): 4 ResNet-152 | recall val >= 0.91": 0.39925851859152317,
+    "Anterior (05): 4 ResNet-152 | FN < FP (90 % bootstrap val)": 0.3525,
+    "Mejor de 06 | recall val >= 0.91": 0.40252902954816816,
+    "Mejor de 06 | FN < FP (90 % bootstrap val)": 0.34750000000000003,
+    "Zoo: 4 modelos nuevos | recall val >= 0.91": 0.5204773377627134,
+    "Zoo: 4 modelos nuevos | FN < FP (90 % bootstrap val)": 0.4625,
+    "4 nuevos + ResNet-152 recall-focus | recall val >= 0.91": 0.5029817596077919,
+    "4 nuevos + ResNet-152 recall-focus | FN < FP (90 % bootstrap val)": 0.4475,
+    "Subconjunto elegido por AUC val | recall val >= 0.91": 0.4713077073295911,
+    "Subconjunto elegido por AUC val | FN < FP (90 % bootstrap val)": 0.395
+  },
+  "val_metrics_optional_ensemble": {
+    "Anterior (05): 4 ResNet-152 | recall val >= 0.91": {
+      "threshold": 0.39925851859152317,
+      "recall": 0.9110671936758893,
+      "specificity": 0.7761194029850746,
+      "precision": 0.9389002036659878,
+      "accuracy": 0.8828125,
+      "f1": 0.9247743229689067,
+      "auc": 0.9439856055689929,
+      "confusion_matrix_TN_FP_FN_TP": [
+        104,
+        30,
+        45,
+        461
+      ]
+    },
+    "Anterior (05): 4 ResNet-152 | FN < FP (90 % bootstrap val)": {
+      "threshold": 0.3525,
+      "recall": 0.9367588932806324,
+      "specificity": 0.6716417910447762,
+      "precision": 0.915057915057915,
+      "accuracy": 0.88125,
+      "f1": 0.92578125,
+      "auc": 0.9439856055689929,
+      "confusion_matrix_TN_FP_FN_TP": [
+        90,
+        44,
+        32,
+        474
+      ]
+    },
+    "Mejor de 06 | recall val >= 0.91": {
+      "threshold": 0.40252902954816816,
+      "recall": 0.9110671936758893,
+      "specificity": 0.7611940298507462,
+      "precision": 0.9350912778904665,
+      "accuracy": 0.8796875,
+      "f1": 0.9229229229229229,
+      "auc": 0.9454014512418146,
+      "confusion_matrix_TN_FP_FN_TP": [
+        102,
+        32,
+        45,
+        461
+      ]
+    },
+    "Mejor de 06 | FN < FP (90 % bootstrap val)": {
+      "threshold": 0.34750000000000003,
+      "recall": 0.9426877470355731,
+      "specificity": 0.664179104477612,
+      "precision": 0.9137931034482759,
+      "accuracy": 0.884375,
+      "f1": 0.9280155642023347,
+      "auc": 0.9454014512418146,
+      "confusion_matrix_TN_FP_FN_TP": [
+        89,
+        45,
+        29,
+        477
+      ]
+    },
+    "Zoo: 4 modelos nuevos | recall val >= 0.91": {
+      "threshold": 0.5204773377627134,
+      "recall": 0.9110671936758893,
+      "specificity": 0.7835820895522388,
+      "precision": 0.9408163265306122,
+      "accuracy": 0.884375,
+      "f1": 0.9257028112449799,
+      "auc": 0.9490295557784202,
+      "confusion_matrix_TN_FP_FN_TP": [
+        105,
+        29,
+        45,
+        461
+      ]
+    },
+    "Zoo: 4 modelos nuevos | FN < FP (90 % bootstrap val)": {
+      "threshold": 0.4625,
+      "recall": 0.9407114624505929,
+      "specificity": 0.6865671641791045,
+      "precision": 0.918918918918919,
+      "accuracy": 0.8875,
+      "f1": 0.9296875,
+      "auc": 0.9490295557784202,
+      "confusion_matrix_TN_FP_FN_TP": [
+        92,
+        42,
+        30,
+        476
+      ]
+    },
+    "4 nuevos + ResNet-152 recall-focus | recall val >= 0.91": {
+      "threshold": 0.5029817596077919,
+      "recall": 0.9110671936758893,
+      "specificity": 0.8059701492537313,
+      "precision": 0.946611909650924,
+      "accuracy": 0.8890625,
+      "f1": 0.9284994964753273,
+      "auc": 0.9504748982360922,
+      "confusion_matrix_TN_FP_FN_TP": [
+        108,
+        26,
+        45,
+        461
+      ]
+    },
+    "4 nuevos + ResNet-152 recall-focus | FN < FP (90 % bootstrap val)": {
+      "threshold": 0.4475,
+      "recall": 0.9426877470355731,
+      "specificity": 0.6940298507462687,
+      "precision": 0.9208494208494209,
+      "accuracy": 0.890625,
+      "f1": 0.931640625,
+      "auc": 0.9504748982360922,
+      "confusion_matrix_TN_FP_FN_TP": [
+        93,
+        41,
+        29,
+        477
+      ]
+    },
+    "Subconjunto elegido por AUC val | recall val >= 0.91": {
+      "threshold": 0.4713077073295911,
+      "recall": 0.9110671936758893,
+      "specificity": 0.8208955223880597,
+      "precision": 0.9505154639175257,
+      "accuracy": 0.8921875,
+      "f1": 0.9303733602421796,
+      "auc": 0.9492360332723733,
+      "confusion_matrix_TN_FP_FN_TP": [
+        110,
+        24,
+        45,
+        461
+      ]
+    },
+    "Subconjunto elegido por AUC val | FN < FP (90 % bootstrap val)": {
+      "threshold": 0.395,
+      "recall": 0.9426877470355731,
+      "specificity": 0.6791044776119403,
+      "precision": 0.9173076923076923,
+      "accuracy": 0.8875,
+      "f1": 0.9298245614035088,
+      "auc": 0.9492360332723733,
+      "confusion_matrix_TN_FP_FN_TP": [
+        91,
+        43,
+        29,
+        477
+      ]
+    }
+  },
+  "test_metrics_optional_ensemble": {
+    "Anterior (05): 4 ResNet-152 | recall val >= 0.91": {
+      "threshold": 0.39925851859152317,
+      "recall": 0.9288537549407114,
+      "specificity": 0.8805970149253731,
+      "precision": 0.9670781893004116,
+      "accuracy": 0.91875,
+      "f1": 0.9475806451612904,
+      "auc": 0.9706359506813756,
+      "confidence_intervals_95": {
+        "recall": [
+          0.9063135482665026,
+          0.9506903353057199
+        ],
+        "specificity": [
+          0.8244050291872475,
+          0.9313029384084492
+        ],
+        "precision": [
+          0.9504106565371389,
+          0.9814078223904152
+        ],
+        "accuracy": [
+          0.896875,
+          0.9390625
+        ],
+        "f1": [
+          0.9329111548481924,
+          0.9610162203448135
+        ],
+        "auc": [
+          0.9577505467025736,
+          0.9809840379306826
+        ]
+      },
+      "confusion_matrix_TN_FP_FN_TP": [
+        118,
+        16,
+        36,
+        470
+      ]
+    },
+    "Anterior (05): 4 ResNet-152 | FN < FP (90 % bootstrap val)": {
+      "threshold": 0.3525,
+      "recall": 0.9387351778656127,
+      "specificity": 0.8432835820895522,
+      "precision": 0.9576612903225806,
+      "accuracy": 0.91875,
+      "f1": 0.9481037924151696,
+      "auc": 0.9706359506813756,
+      "confidence_intervals_95": {
+        "recall": [
+          0.9174852652259332,
+          0.9585798816568047
+        ],
+        "specificity": [
+          0.7777777777777778,
+          0.902782960199005
+        ],
+        "precision": [
+          0.9388869431071413,
+          0.9740038767395626
+        ],
+        "accuracy": [
+          0.896875,
+          0.9375
+        ],
+        "f1": [
+          0.9331915917843389,
+          0.9608615965312768
+        ],
+        "auc": [
+          0.9577505467025736,
+          0.9809840379306826
+        ]
+      },
+      "confusion_matrix_TN_FP_FN_TP": [
+        113,
+        21,
+        31,
+        475
+      ]
+    },
+    "Mejor de 06 | recall val >= 0.91": {
+      "threshold": 0.40252902954816816,
+      "recall": 0.9308300395256917,
+      "specificity": 0.8880597014925373,
+      "precision": 0.9691358024691358,
+      "accuracy": 0.921875,
+      "f1": 0.9495967741935484,
+      "auc": 0.9723467642027019,
+      "confidence_intervals_95": {
+        "recall": [
+          0.9089018365057182,
+          0.9518304431599229
+        ],
+        "specificity": [
+          0.8333053691275168,
+          0.9379964221824687
+        ],
+        "precision": [
+          0.9531906226979244,
+          0.983159660156681
+        ],
+        "accuracy": [
+          0.9,
+          0.9421875
+        ],
+        "f1": [
+          0.9349838908605804,
+          0.9630388056609392
+        ],
+        "auc": [
+          0.959332480124954,
+          0.9822758573203598
+        ]
+      },
+      "confusion_matrix_TN_FP_FN_TP": [
+        119,
+        15,
+        35,
+        471
+      ]
+    },
+    "Mejor de 06 | FN < FP (90 % bootstrap val)": {
+      "threshold": 0.34750000000000003,
+      "recall": 0.9446640316205533,
+      "specificity": 0.835820895522388,
+      "precision": 0.956,
+      "accuracy": 0.921875,
+      "f1": 0.9502982107355865,
+      "auc": 0.9723467642027019,
+      "confidence_intervals_95": {
+        "recall": [
+          0.9233791748526523,
+          0.9632666850523993
+        ],
+        "specificity": [
+          0.7727272727272727,
+          0.8943103744417725
+        ],
+        "precision": [
+          0.9369829147548902,
+          0.9727692059707759
+        ],
+        "accuracy": [
+          0.9,
+          0.9406640625
+        ],
+        "f1": [
+          0.9357406131164084,
+          0.9629629629629629
+        ],
+        "auc": [
+          0.959332480124954,
+          0.9822758573203598
+        ]
+      },
+      "confusion_matrix_TN_FP_FN_TP": [
+        112,
+        22,
+        28,
+        478
+      ]
+    },
+    "Zoo: 4 modelos nuevos | recall val >= 0.91": {
+      "threshold": 0.5204773377627134,
+      "recall": 0.924901185770751,
+      "specificity": 0.8955223880597015,
+      "precision": 0.970954356846473,
+      "accuracy": 0.91875,
+      "f1": 0.9473684210526315,
+      "auc": 0.971373370302637,
+      "confidence_intervals_95": {
+        "recall": [
+          0.901180878957461,
+          0.9459472972972973
+        ],
+        "specificity": [
+          0.8405797101449275,
+          0.9436815336463223
+        ],
+        "precision": [
+          0.9546321170381145,
+          0.9847583785287165
+        ],
+        "accuracy": [
+          0.896875,
+          0.9390625
+        ],
+        "f1": [
+          0.9323735777762816,
+          0.9607081824676484
+        ],
+        "auc": [
+          0.9586829965128363,
+          0.9816591273452748
+        ]
+      },
+      "confusion_matrix_TN_FP_FN_TP": [
+        120,
+        14,
+        38,
+        468
+      ]
+    },
+    "Zoo: 4 modelos nuevos | FN < FP (90 % bootstrap val)": {
+      "threshold": 0.4625,
+      "recall": 0.9525691699604744,
+      "specificity": 0.8059701492537313,
+      "precision": 0.9488188976377953,
+      "accuracy": 0.921875,
+      "f1": 0.9506903353057199,
+      "auc": 0.971373370302637,
+      "confidence_intervals_95": {
+        "recall": [
+          0.9330715921371837,
+          0.9701224862454942
+        ],
+        "specificity": [
+          0.7394289650949174,
+          0.8675551420283509
+        ],
+        "precision": [
+          0.928567974578613,
+          0.9660016966067864
+        ],
+        "accuracy": [
+          0.9,
+          0.9406640625
+        ],
+        "f1": [
+          0.936298184410991,
+          0.963548166392994
+        ],
+        "auc": [
+          0.9586829965128363,
+          0.9816591273452748
+        ]
+      },
+      "confusion_matrix_TN_FP_FN_TP": [
+        108,
+        26,
+        24,
+        482
+      ]
+    },
+    "4 nuevos + ResNet-152 recall-focus | recall val >= 0.91": {
+      "threshold": 0.5029817596077919,
+      "recall": 0.9288537549407114,
+      "specificity": 0.8955223880597015,
+      "precision": 0.9710743801652892,
+      "accuracy": 0.921875,
+      "f1": 0.9494949494949495,
+      "auc": 0.972936699899711,
+      "confidence_intervals_95": {
+        "recall": [
+          0.9064841770183921,
+          0.9501022854689029
+        ],
+        "specificity": [
+          0.8405797101449275,
+          0.9436815336463223
+        ],
+        "precision": [
+          0.9545431018257106,
+          0.9847922807663965
+        ],
+        "accuracy": [
+          0.9,
+          0.940625
+        ],
+        "f1": [
+          0.9354092108650875,
+          0.9623030506709296
+        ],
+        "auc": [
+          0.9602014579231994,
+          0.9829330765920826
+        ]
+      },
+      "confusion_matrix_TN_FP_FN_TP": [
+        120,
+        14,
+        36,
+        470
+      ]
+    },
+    "4 nuevos + ResNet-152 recall-focus | FN < FP (90 % bootstrap val)": {
+      "threshold": 0.4475,
+      "recall": 0.9565217391304348,
+      "specificity": 0.8134328358208955,
+      "precision": 0.9508840864440079,
+      "accuracy": 0.9265625,
+      "f1": 0.9536945812807882,
+      "auc": 0.972936699899711,
+      "confidence_intervals_95": {
+        "recall": [
+          0.9367588932806324,
+          0.9740051587301587
+        ],
+        "specificity": [
+          0.7407004830917875,
+          0.8750228102189781
+        ],
+        "precision": [
+          0.9304162452749652,
+          0.9679422463216691
+        ],
+        "accuracy": [
+          0.9046875,
+          0.9453125
+        ],
+        "f1": [
+          0.9394516453598485,
+          0.9663143349946159
+        ],
+        "auc": [
+          0.9602014579231994,
+          0.9829330765920826
+        ]
+      },
+      "confusion_matrix_TN_FP_FN_TP": [
+        109,
+        25,
+        22,
+        484
+      ]
+    },
+    "Subconjunto elegido por AUC val | recall val >= 0.91": {
+      "threshold": 0.4713077073295911,
+      "recall": 0.9169960474308301,
+      "specificity": 0.9104477611940298,
+      "precision": 0.9747899159663865,
+      "accuracy": 0.915625,
+      "f1": 0.945010183299389,
+      "auc": 0.9731431773936641,
+      "confidence_intervals_95": {
+        "recall": [
+          0.8930657100126839,
+          0.9395758472486436
+        ],
+        "specificity": [
+          0.8571205357142857,
+          0.9548483389504092
+        ],
+        "precision": [
+          0.958690916471225,
+          0.9874220415252231
+        ],
+        "accuracy": [
+          0.89375,
+          0.934375
+        ],
+        "f1": [
+          0.9301344485612228,
+          0.9578559417685947
+        ],
+        "auc": [
+          0.9606512827839729,
+          0.982859763896462
+        ]
+      },
+      "confusion_matrix_TN_FP_FN_TP": [
+        122,
+        12,
+        42,
+        464
+      ]
+    },
+    "Subconjunto elegido por AUC val | FN < FP (90 % bootstrap val)": {
+      "threshold": 0.395,
+      "recall": 0.950592885375494,
+      "specificity": 0.8059701492537313,
+      "precision": 0.9487179487179487,
+      "accuracy": 0.9203125,
+      "f1": 0.9496544916090819,
+      "auc": 0.9731431773936641,
+      "confidence_intervals_95": {
+        "recall": [
+          0.9300764873061591,
+          0.968570419941061
+        ],
+        "specificity": [
+          0.7391137123745819,
+          0.8682221542227662
+        ],
+        "precision": [
+          0.9280155642023347,
+          0.9663382968731655
+        ],
+        "accuracy": [
+          0.896875,
+          0.940625
+        ],
+        "f1": [
+          0.9343903709218792,
+          0.9628270209949444
+        ],
+        "auc": [
+          0.9606512827839729,
+          0.982859763896462
+        ]
+      },
+      "confusion_matrix_TN_FP_FN_TP": [
+        108,
+        26,
+        25,
+        481
+      ]
+    }
+  },
+  "paired_difference_optional": {
+    "recall": {
+      "difference": 0.011857707509881465,
+      "ci95": [
+        0.0038908616977069103,
+        0.022232510288065867
+      ]
+    },
+    "specificity": {
+      "difference": -0.02238805970149249,
+      "ci95": [
+        -0.07299715150436177,
+        0.028174008590550356
+      ]
+    },
+    "precision": {
+      "difference": -0.005115913555992058,
+      "ci95": [
+        -0.017679109592031114,
+        0.00813394587918343
+      ]
+    },
+    "accuracy": {
+      "difference": 0.004687499999999956,
+      "ci95": [
+        -0.0078125,
+        0.017187500000000022
+      ]
+    },
+    "f1": {
+      "difference": 0.003396370545201699,
+      "ci95": [
+        -0.004195780172373911,
+        0.011305606994836922
+      ]
+    },
+    "auc": {
+      "difference": 0.0005899356970090475,
+      "ci95": [
+        -0.002785759863429168,
+        0.004388681459827858
+      ]
+    }
+  }
+}

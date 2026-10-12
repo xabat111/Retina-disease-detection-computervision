@@ -1,0 +1,52 @@
+# Python
+__pycache__/
+*.py[cod]
+.ipynb_checkpoints/
+.venv/
+venv/
+.env
+
+# Datos RFMiD (viven en el padre Retina/, no en este repo)
+Training_Set/
+Evaluation_Set/
+Test_Set/
+**/RFMiD*/
+data/
+datasets/
+*.jpg
+*.jpeg
+*.png
+*.tif
+*.tiff
+!docs/**/*.png
+!docs/**/*.jpg
+!artifacts/figures/**/*.png
+!artifacts/preprocessing_check_letterbox.png
+
+# Checkpoints y pesos (nunca versionar)
+*.pt
+*.pth
+*.ckpt
+*.onnx
+*.h5
+artifacts/checkpoints/**
+!artifacts/checkpoints/.gitkeep
+artifacts/torch_cache/
+artifacts/cache/
+artifacts/**/predictions/
+artifacts/logs/*.out
+artifacts/logs/*.err
+artifacts/optuna/*.db
+
+# Resultados generados
+results/**/*.png
+results/**/*.jpg
+results/archive/
+results/checkpoints/**
+!results/checkpoints/README.md
+
+# OS / IDE
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/

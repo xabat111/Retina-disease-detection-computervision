@@ -1,0 +1,8 @@
+NB07_SETUP_V3
+cwd=C:\Users\Xabat Arin\Desktop\kaggle\Retina\retina_clasificacion\notebooks\other_experiments
+device=cpu
+PROJECT_ROOT=C:\Users\Xabat Arin\Desktop\kaggle\Retina\retina_clasificacion
+DATA_ROOT=C:\Users\Xabat Arin\Desktop\kaggle\Retina
+checkpoints=C:\Users\Xabat Arin\Desktop\kaggle\Retina\retina_clasificacion\artifacts\checkpoints
+train_labels=True
+checkpoint_dir_writable=True

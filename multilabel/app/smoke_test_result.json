@@ -1,0 +1,79 @@
+{
+  "ok": true,
+  "rows": [
+    {
+      "test_index": 0,
+      "id": 1,
+      "max_abs_diff": 0.00041,
+      "same_decisions": true,
+      "pred": [
+        "D",
+        "G",
+        "M"
+      ],
+      "truth": [
+        "D",
+        "M"
+      ],
+      "overall": "High",
+      "gradcam": [
+        37,
+        37
+      ],
+      "overlay": [
+        518,
+        518,
+        3
+      ],
+      "sec": 50.2
+    },
+    {
+      "test_index": 110,
+      "id": 111,
+      "max_abs_diff": 3e-05,
+      "same_decisions": true,
+      "pred": [
+        "D"
+      ],
+      "truth": [
+        "D"
+      ],
+      "overall": "Low",
+      "gradcam": [
+        37,
+        37
+      ],
+      "overlay": [
+        518,
+        518,
+        3
+      ],
+      "sec": 48.3
+    },
+    {
+      "test_index": 300,
+      "id": 301,
+      "max_abs_diff": 0.00257,
+      "same_decisions": true,
+      "pred": [
+        "D",
+        "G",
+        "A"
+      ],
+      "truth": [
+        "A"
+      ],
+      "overall": "Low",
+      "gradcam": [
+        37,
+        37
+      ],
+      "overlay": [
+        518,
+        518,
+        3
+      ],
+      "sec": 49.5
+    }
+  ]
+}

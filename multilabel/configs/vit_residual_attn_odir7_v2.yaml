@@ -1,0 +1,26 @@
+# Final ensemble member: vit_residual_attn_odir7_v2
+# Values copied from checkpoints/final_20261030/vit_residual_attn_odir7_v2/run_summary.json
+# (patience / grad-clip / num-workers come from the launch scripts: they are not stored in run_summary).
+# Kaggle T4 (kaggle_push v2 job). Best epoch 8 (val_loss).
+# Backbone: timm vit_large_patch14_dinov2.lvd142m, last 4 blocks fine-tuned + residual token-attention head.
+# Seed: not fixed in the original run (expect small run-to-run variance).
+# Run:  python configs/train_from_config.py configs/vit_residual_attn_odir7_v2.yaml
+script: scripts/train_vit_residual.py
+args:
+  taxonomy: odir7
+  epochs: 40
+  batch-size: 8
+  img-size: 392
+  lr: 5.0e-4
+  backbone-lr: 1.0e-5
+  unfreeze-blocks: 4
+  scheduler: cosine
+  warmup-epochs: 2
+  amp: true
+  weight-decay: 1.0e-4
+  grad-clip: 1.0
+  patience: 15
+  pos-weight-cap: 20
+  recall-floor: 0.80
+  num-workers: 2
+  run-name: vit_residual_attn_odir7_v2

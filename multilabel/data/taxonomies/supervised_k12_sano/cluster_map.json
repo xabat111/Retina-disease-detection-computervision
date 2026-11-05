@@ -1,0 +1,191 @@
+{
+  "scheme": "supervised_k12_sano",
+  "source": "latent_regrouping supervised_train_224_latent k=12 + otros(rare) + sano",
+  "notes": {
+    "sano": "Disease_Risk==0 AND no RFMiD disease column active (same rule as retina_multilabel.labels)",
+    "g13_otros": "21 rare columns (<10 positives on train in REGROUPING.md)",
+    "sano_in_clustering": false
+  },
+  "k": 14,
+  "n_pathology_groups": 12,
+  "column_to_cluster_id": {
+    "AION": 0,
+    "ODE": 0,
+    "CSR": 1,
+    "DN": 1,
+    "MHL": 1,
+    "RPEC": 1,
+    "PT": 2,
+    "ERM": 3,
+    "ODP": 3,
+    "MS": 4,
+    "CRS": 5,
+    "RS": 5,
+    "BRVO": 6,
+    "CRVO": 6,
+    "DR": 7,
+    "LS": 7,
+    "AH": 8,
+    "EDN": 8,
+    "RT": 8,
+    "ARMD": 9,
+    "MYA": 9,
+    "TSLN": 9,
+    "MH": 10,
+    "ODC": 11,
+    "TV": 12,
+    "ST": 12,
+    "RP": 12,
+    "CWS": 12,
+    "CB": 12,
+    "ODPM": 12,
+    "PRH": 12,
+    "MNF": 12,
+    "HR": 12,
+    "CRAO": 12,
+    "TD": 12,
+    "CME": 12,
+    "PTCR": 12,
+    "CF": 12,
+    "VH": 12,
+    "MCA": 12,
+    "VS": 12,
+    "BRAO": 12,
+    "PLQ": 12,
+    "HPED": 12,
+    "CL": 12
+  },
+  "cluster_id_to_columns": {
+    "0": [
+      "AION",
+      "ODE"
+    ],
+    "1": [
+      "CSR",
+      "DN",
+      "MHL",
+      "RPEC"
+    ],
+    "2": [
+      "PT"
+    ],
+    "3": [
+      "ERM",
+      "ODP"
+    ],
+    "4": [
+      "MS"
+    ],
+    "5": [
+      "CRS",
+      "RS"
+    ],
+    "6": [
+      "BRVO",
+      "CRVO"
+    ],
+    "7": [
+      "DR",
+      "LS"
+    ],
+    "8": [
+      "AH",
+      "EDN",
+      "RT"
+    ],
+    "9": [
+      "ARMD",
+      "MYA",
+      "TSLN"
+    ],
+    "10": [
+      "MH"
+    ],
+    "11": [
+      "ODC"
+    ],
+    "12": [
+      "TV",
+      "ST",
+      "RP",
+      "CWS",
+      "CB",
+      "ODPM",
+      "PRH",
+      "MNF",
+      "HR",
+      "CRAO",
+      "TD",
+      "CME",
+      "PTCR",
+      "CF",
+      "VH",
+      "MCA",
+      "VS",
+      "BRAO",
+      "PLQ",
+      "HPED",
+      "CL"
+    ],
+    "13": []
+  },
+  "cluster_id_to_name": {
+    "0": "g01_aion_ode",
+    "1": "g02_csr_dn_mhl_rpec",
+    "2": "g03_pt",
+    "3": "g04_erm_odp",
+    "4": "g05_ms",
+    "5": "g06_crs_rs",
+    "6": "g07_brvo_crvo",
+    "7": "g08_dr_ls",
+    "8": "g09_ah_edn_rt",
+    "9": "g10_armd_mya_tsln",
+    "10": "g11_mh",
+    "11": "g12_odc",
+    "12": "g13_otros",
+    "13": "sano"
+  },
+  "cluster_names_ordered": [
+    "g01_aion_ode",
+    "g02_csr_dn_mhl_rpec",
+    "g03_pt",
+    "g04_erm_odp",
+    "g05_ms",
+    "g06_crs_rs",
+    "g07_brvo_crvo",
+    "g08_dr_ls",
+    "g09_ah_edn_rt",
+    "g10_armd_mya_tsln",
+    "g11_mh",
+    "g12_odc",
+    "g13_otros",
+    "sano"
+  ],
+  "rare_columns": [
+    "TV",
+    "ST",
+    "RP",
+    "CWS",
+    "CB",
+    "ODPM",
+    "PRH",
+    "MNF",
+    "HR",
+    "CRAO",
+    "TD",
+    "CME",
+    "PTCR",
+    "CF",
+    "VH",
+    "MCA",
+    "VS",
+    "BRAO",
+    "PLQ",
+    "HPED",
+    "CL"
+  ],
+  "meta_columns": [
+    "ID",
+    "Disease_Risk"
+  ]
+}

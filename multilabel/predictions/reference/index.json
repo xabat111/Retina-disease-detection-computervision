@@ -1,0 +1,344 @@
+[
+  {
+    "taxonomy": "odir7",
+    "model": "vit_residual_attn_odir7_v2",
+    "n_labels": 7,
+    "md5_test_probs": "59a35ea311db45994d4acb88d0a8fb39",
+    "test": "predictions\\reference\\odir7\\vit_residual_attn_odir7_v2\\test_predictions.npz",
+    "val": "predictions\\reference\\odir7\\vit_residual_attn_odir7_v2\\val_predictions.npz",
+    "source": "retina_no_github\\predictions\\runs\\checkpoints\\final_20261030\\vit_residual_attn_odir7_v2\\test_predictions.npz"
+  },
+  {
+    "taxonomy": "odir7",
+    "model": "vit_residual_attn_odir7_v2_518",
+    "n_labels": 7,
+    "md5_test_probs": "21bcb8c96c09b53fff58c59786bf4ef6",
+    "test": "predictions\\reference\\odir7\\vit_residual_attn_odir7_v2_518\\test_predictions.npz",
+    "val": "predictions\\reference\\odir7\\vit_residual_attn_odir7_v2_518\\val_predictions.npz",
+    "source": "retina_no_github\\predictions\\runs\\checkpoints\\final_20261030\\vit_residual_attn_odir7_v2_518\\test_predictions.npz"
+  },
+  {
+    "taxonomy": "odir7",
+    "model": "vit_residual_attn_odir7_v3fundus",
+    "n_labels": 7,
+    "md5_test_probs": "a2cafab96b6cc0f5d7f29bac4bab462f",
+    "test": "predictions\\reference\\odir7\\vit_residual_attn_odir7_v3fundus\\test_predictions.npz",
+    "val": "predictions\\reference\\odir7\\vit_residual_attn_odir7_v3fundus\\val_predictions.npz",
+    "source": "retina_no_github\\predictions\\runs\\checkpoints\\final_20261030\\vit_residual_attn_odir7_v3fundus\\test_predictions.npz"
+  },
+  {
+    "taxonomy": "cluster_c",
+    "model": "vit_dinov2_cluster_c_v3fundus",
+    "n_labels": 10,
+    "md5_test_probs": "0c10fc23b41444e65ccbc5ea132c74fc",
+    "test": "predictions\\reference\\cluster_c\\vit_dinov2_cluster_c_v3fundus\\test_predictions.npz",
+    "val": "predictions\\reference\\cluster_c\\vit_dinov2_cluster_c_v3fundus\\val_predictions.npz",
+    "source": "retina_no_github\\predictions\\runs\\colab_outputs\\runs\\cluster_c\\vit_dinov2_cluster_c_v3fundus\\test_predictions.npz"
+  },
+  {
+    "taxonomy": "cluster_c",
+    "model": "vit_dinov2_cluster_c_v3fundus_518",
+    "n_labels": 10,
+    "md5_test_probs": "73aed2fe4693d7d77dd21baf23baad53",
+    "test": "predictions\\reference\\cluster_c\\vit_dinov2_cluster_c_v3fundus_518\\test_predictions.npz",
+    "val": "predictions\\reference\\cluster_c\\vit_dinov2_cluster_c_v3fundus_518\\val_predictions.npz",
+    "source": "retina_no_github\\predictions\\runs\\colab_outputs\\runs\\cluster_c\\vit_dinov2_cluster_c_v3fundus_518\\test_predictions.npz"
+  },
+  {
+    "taxonomy": "cluster_c",
+    "model": "vit_residual_attn_cluster_c_v2_518",
+    "n_labels": 10,
+    "md5_test_probs": "cdcbe309932c68691f980be471e16b60",
+    "test": "predictions\\reference\\cluster_c\\vit_residual_attn_cluster_c_v2_518\\test_predictions.npz",
+    "val": "predictions\\reference\\cluster_c\\vit_residual_attn_cluster_c_v2_518\\val_predictions.npz",
+    "source": "retina_no_github\\predictions\\runs\\colab_outputs\\runs\\cluster_c\\vit_residual_attn_cluster_c_v2_518\\test_predictions.npz"
+  },
+  {
+    "taxonomy": "cluster_c",
+    "model": "vit_residual_attn_cluster_c_v3fundus",
+    "n_labels": 10,
+    "md5_test_probs": "17c7f8d919b84a7099f5adfbef7a2a4b",
+    "test": "predictions\\reference\\cluster_c\\vit_residual_attn_cluster_c_v3fundus\\test_predictions.npz",
+    "val": "predictions\\reference\\cluster_c\\vit_residual_attn_cluster_c_v3fundus\\val_predictions.npz",
+    "source": "retina_no_github\\predictions\\runs\\colab_outputs\\runs\\cluster_c\\vit_residual_attn_cluster_c_v3fundus\\test_predictions.npz"
+  },
+  {
+    "taxonomy": "cluster_c",
+    "model": "vit_residual_attn_cluster_c_v3fundus_518",
+    "n_labels": 10,
+    "md5_test_probs": "ca049a7eef76e5d94ee8c8909c708f78",
+    "test": "predictions\\reference\\cluster_c\\vit_residual_attn_cluster_c_v3fundus_518\\test_predictions.npz",
+    "val": "predictions\\reference\\cluster_c\\vit_residual_attn_cluster_c_v3fundus_518\\val_predictions.npz",
+    "source": "retina_no_github\\predictions\\runs\\colab_outputs\\runs\\cluster_c\\vit_residual_attn_cluster_c_v3fundus_518\\test_predictions.npz"
+  },
+  {
+    "taxonomy": "odir7",
+    "model": "vit_dinov2_odir7_v2_518",
+    "n_labels": 7,
+    "md5_test_probs": "14d92e585eaa0e41a5f35468596b480f",
+    "test": "predictions\\reference\\odir7\\vit_dinov2_odir7_v2_518\\test_predictions.npz",
+    "val": "predictions\\reference\\odir7\\vit_dinov2_odir7_v2_518\\val_predictions.npz",
+    "source": "retina_no_github\\predictions\\runs\\colab_outputs\\runs\\odir7\\vit_dinov2_odir7_v2_518\\test_predictions.npz"
+  },
+  {
+    "taxonomy": "odir7",
+    "model": "vit_dinov2_odir7_v3fundus",
+    "n_labels": 7,
+    "md5_test_probs": "116da4b893c42b09756da6578ec4342d",
+    "test": "predictions\\reference\\odir7\\vit_dinov2_odir7_v3fundus\\test_predictions.npz",
+    "val": "predictions\\reference\\odir7\\vit_dinov2_odir7_v3fundus\\val_predictions.npz",
+    "source": "retina_no_github\\predictions\\runs\\colab_outputs\\runs\\odir7\\vit_dinov2_odir7_v3fundus\\test_predictions.npz"
+  },
+  {
+    "taxonomy": "odir7",
+    "model": "vit_dinov2_odir7_v3fundus_518",
+    "n_labels": 7,
+    "md5_test_probs": "718f14971ed6bc09692155c4a645d5d3",
+    "test": "predictions\\reference\\odir7\\vit_dinov2_odir7_v3fundus_518\\test_predictions.npz",
+    "val": "predictions\\reference\\odir7\\vit_dinov2_odir7_v3fundus_518\\val_predictions.npz",
+    "source": "retina_no_github\\predictions\\runs\\colab_outputs\\runs\\odir7\\vit_dinov2_odir7_v3fundus_518\\test_predictions.npz"
+  },
+  {
+    "taxonomy": "odir7",
+    "model": "vit_residual_attn_odir7_v3fundus_518",
+    "n_labels": 7,
+    "md5_test_probs": "55332eebd6f213781123fb0faf6e591c",
+    "test": "predictions\\reference\\odir7\\vit_residual_attn_odir7_v3fundus_518\\test_predictions.npz",
+    "val": "predictions\\reference\\odir7\\vit_residual_attn_odir7_v3fundus_518\\val_predictions.npz",
+    "source": "retina_no_github\\predictions\\runs\\colab_outputs\\runs\\odir7\\vit_residual_attn_odir7_v3fundus_518\\test_predictions.npz"
+  },
+  {
+    "taxonomy": "sup_k12",
+    "model": "vit_dinov2_sup_k12_sano_hires518_asl_fundus_notta",
+    "n_labels": 14,
+    "md5_test_probs": "ca70d002d79a83e13ae7047e5b5f3c75",
+    "test": "predictions\\reference\\sup_k12\\vit_dinov2_sup_k12_sano_hires518_asl_fundus_notta\\test_predictions.npz",
+    "val": "predictions\\reference\\sup_k12\\vit_dinov2_sup_k12_sano_hires518_asl_fundus_notta\\val_predictions.npz",
+    "source": "retina_no_github\\predictions\\runs\\colab_outputs\\runs\\supk12\\vit_dinov2_sup_k12_sano_hires518_asl_fundus\\test_predictions_notta.npz"
+  },
+  {
+    "taxonomy": "sup_k12",
+    "model": "vit_dinov2_sup_k12_sano_hires518_asl_fundus_tta",
+    "n_labels": 14,
+    "md5_test_probs": "20487b876256bde70a2a6a74f4052da2",
+    "test": "predictions\\reference\\sup_k12\\vit_dinov2_sup_k12_sano_hires518_asl_fundus_tta\\test_predictions.npz",
+    "val": "predictions\\reference\\sup_k12\\vit_dinov2_sup_k12_sano_hires518_asl_fundus_tta\\val_predictions.npz",
+    "source": "retina_no_github\\predictions\\runs\\colab_outputs\\runs\\supk12\\vit_dinov2_sup_k12_sano_hires518_asl_fundus\\test_predictions_tta.npz"
+  },
+  {
+    "taxonomy": "cluster_c",
+    "model": "bfpc_dual_view_cluster_c_v2",
+    "n_labels": 10,
+    "md5_test_probs": "c571d0a041c44aed67291bb7d24d0a43",
+    "test": "predictions\\reference\\cluster_c\\bfpc_dual_view_cluster_c_v2\\test_predictions.npz",
+    "val": "predictions\\reference\\cluster_c\\bfpc_dual_view_cluster_c_v2\\val_predictions.npz",
+    "source": "retina_no_github\\predictions\\runs\\kaggle_out\\v2-clusterc\\bfpc_vit_dual_outputs\\runs\\bfpc_dual_view_cluster_c_v2\\test_predictions.npz"
+  },
+  {
+    "taxonomy": "cluster_c",
+    "model": "bfpc_single_cluster_c_v2",
+    "n_labels": 10,
+    "md5_test_probs": "11bdd463bcd6b642ff60e2bdff728b2b",
+    "test": "predictions\\reference\\cluster_c\\bfpc_single_cluster_c_v2\\test_predictions.npz",
+    "val": "predictions\\reference\\cluster_c\\bfpc_single_cluster_c_v2\\val_predictions.npz",
+    "source": "retina_no_github\\predictions\\runs\\kaggle_out\\v2-clusterc\\bfpc_vit_dual_outputs\\runs\\bfpc_single_cluster_c_v2\\test_predictions.npz"
+  },
+  {
+    "taxonomy": "cluster_c",
+    "model": "vit_dinov2_cluster_c_v2",
+    "n_labels": 10,
+    "md5_test_probs": "a958cc36ade731e304d74210be4c0293",
+    "test": "predictions\\reference\\cluster_c\\vit_dinov2_cluster_c_v2\\test_predictions.npz",
+    "val": "predictions\\reference\\cluster_c\\vit_dinov2_cluster_c_v2\\val_predictions.npz",
+    "source": "retina_no_github\\predictions\\runs\\kaggle_out\\v2-clusterc\\bfpc_vit_dual_outputs\\runs\\vit_dinov2_cluster_c_v2\\test_predictions.npz"
+  },
+  {
+    "taxonomy": "odir7",
+    "model": "vit_residual_attn_odir7_v2_s0",
+    "n_labels": 7,
+    "md5_test_probs": "3a8c00995c69b0edfc323acf3b0711e3",
+    "test": "predictions\\reference\\odir7\\vit_residual_attn_odir7_v2_s0\\test_predictions.npz",
+    "val": "predictions\\reference\\odir7\\vit_residual_attn_odir7_v2_s0\\val_predictions.npz",
+    "source": "retina_no_github\\predictions\\runs\\kaggle_outputs\\seeds_vitres_out\\bfpc_vit_dual_outputs\\runs\\vit_residual_attn_odir7_v2_s0\\test_predictions.npz"
+  },
+  {
+    "taxonomy": "cluster_c",
+    "model": "vit_residual_attn_cluster_c_v2",
+    "n_labels": 10,
+    "md5_test_probs": "3efb863f071855028ea29f29014e3ce9",
+    "test": "predictions\\reference\\cluster_c\\vit_residual_attn_cluster_c_v2\\test_predictions.npz",
+    "val": "predictions\\reference\\cluster_c\\vit_residual_attn_cluster_c_v2\\val_predictions.npz",
+    "source": "retina_no_github\\predictions\\runs\\kaggle_outputs\\v2_clusterc_out\\bfpc_vit_dual_outputs\\runs\\vit_residual_attn_cluster_c_v2\\test_predictions.npz"
+  },
+  {
+    "taxonomy": "odir7",
+    "model": "bfpc_single_odir7_v2",
+    "n_labels": 7,
+    "md5_test_probs": "bd3ebae5b29240adeddfe48b468fc3c9",
+    "test": "predictions\\reference\\odir7\\bfpc_single_odir7_v2\\test_predictions.npz",
+    "val": "predictions\\reference\\odir7\\bfpc_single_odir7_v2\\val_predictions.npz",
+    "source": "retina_no_github\\predictions\\runs\\training\\dual_tax\\tmp\\v2_odir7_out\\bfpc_vit_dual_outputs\\runs\\bfpc_single_odir7_v2\\test_predictions.npz"
+  },
+  {
+    "taxonomy": "odir7",
+    "model": "vit_dinov2_odir7_v2",
+    "n_labels": 7,
+    "md5_test_probs": "a7895734861cfebf7de7018d12df291f",
+    "test": "predictions\\reference\\odir7\\vit_dinov2_odir7_v2\\test_predictions.npz",
+    "val": "predictions\\reference\\odir7\\vit_dinov2_odir7_v2\\val_predictions.npz",
+    "source": "retina_no_github\\predictions\\runs\\training\\dual_tax\\tmp\\v2_odir7_out\\bfpc_vit_dual_outputs\\runs\\vit_dinov2_odir7_v2\\test_predictions.npz"
+  },
+  {
+    "taxonomy": "sup_k12",
+    "model": "bfpc_sup_k12_sano_focal_full",
+    "n_labels": 14,
+    "md5_test_probs": "35c1cbaa7f20778909845af7bded12f7",
+    "test": "predictions\\reference\\sup_k12\\bfpc_sup_k12_sano_focal_full\\test_predictions.npz",
+    "val": "predictions\\reference\\sup_k12\\bfpc_sup_k12_sano_focal_full\\val_predictions.npz",
+    "source": "retina_no_github\\predictions\\runs\\training\\sup_k12\\outputs\\kaggle_sup_k12_focal\\paper_sup_k12_focal_outputs\\runs\\bfpc_sup_k12_sano_focal\\test_predictions_full.npz"
+  },
+  {
+    "taxonomy": "sup_k12",
+    "model": "inception_sup_k12_sano_focal_full",
+    "n_labels": 14,
+    "md5_test_probs": "ea080f2c1491143072cb09c6d70c8eae",
+    "test": "predictions\\reference\\sup_k12\\inception_sup_k12_sano_focal_full\\test_predictions.npz",
+    "val": "predictions\\reference\\sup_k12\\inception_sup_k12_sano_focal_full\\val_predictions.npz",
+    "source": "retina_no_github\\predictions\\runs\\training\\sup_k12\\outputs\\kaggle_sup_k12_focal\\paper_sup_k12_focal_outputs\\runs\\inception_sup_k12_sano_focal\\test_predictions_full.npz"
+  },
+  {
+    "taxonomy": "sup_k12",
+    "model": "vit_dinov2_sup_k12_sano_focal_full",
+    "n_labels": 14,
+    "md5_test_probs": "bea717e46f5f4b5b0493a83dc64675d2",
+    "test": "predictions\\reference\\sup_k12\\vit_dinov2_sup_k12_sano_focal_full\\test_predictions.npz",
+    "val": "predictions\\reference\\sup_k12\\vit_dinov2_sup_k12_sano_focal_full\\val_predictions.npz",
+    "source": "retina_no_github\\predictions\\runs\\training\\sup_k12\\outputs\\kaggle_sup_k12_focal\\paper_sup_k12_focal_outputs\\runs\\vit_dinov2_sup_k12_sano_focal\\test_predictions_full.npz"
+  },
+  {
+    "taxonomy": "sup_k12",
+    "model": "inception_sup_k12_sano_hires448_asl_notta",
+    "n_labels": 14,
+    "md5_test_probs": "c2bb6b7085abbe585e25e3823259e422",
+    "test": "predictions\\reference\\sup_k12\\inception_sup_k12_sano_hires448_asl_notta\\test_predictions.npz",
+    "val": "predictions\\reference\\sup_k12\\inception_sup_k12_sano_hires448_asl_notta\\val_predictions.npz",
+    "source": "retina_no_github\\predictions\\runs\\training\\sup_k12\\outputs\\kaggle_sup_k12_hires_asl\\paper_sup_k12_hires_asl_outputs\\runs\\inception_sup_k12_sano_hires448_asl\\test_predictions_notta.npz"
+  },
+  {
+    "taxonomy": "sup_k12",
+    "model": "inception_sup_k12_sano_hires448_asl_tta",
+    "n_labels": 14,
+    "md5_test_probs": "d47bbb94d3dce222ebf576537ad45d2f",
+    "test": "predictions\\reference\\sup_k12\\inception_sup_k12_sano_hires448_asl_tta\\test_predictions.npz",
+    "val": "predictions\\reference\\sup_k12\\inception_sup_k12_sano_hires448_asl_tta\\val_predictions.npz",
+    "source": "retina_no_github\\predictions\\runs\\training\\sup_k12\\outputs\\kaggle_sup_k12_hires_asl\\paper_sup_k12_hires_asl_outputs\\runs\\inception_sup_k12_sano_hires448_asl\\test_predictions_tta.npz"
+  },
+  {
+    "taxonomy": "sup_k12",
+    "model": "vit_dinov2_sup_k12_sano_hires518_asl_notta",
+    "n_labels": 14,
+    "md5_test_probs": "80dacbee328db45b8c11006da0f59c33",
+    "test": "predictions\\reference\\sup_k12\\vit_dinov2_sup_k12_sano_hires518_asl_notta\\test_predictions.npz",
+    "val": "predictions\\reference\\sup_k12\\vit_dinov2_sup_k12_sano_hires518_asl_notta\\val_predictions.npz",
+    "source": "retina_no_github\\predictions\\runs\\training\\sup_k12\\outputs\\kaggle_sup_k12_hires_asl\\paper_sup_k12_hires_asl_outputs\\runs\\vit_dinov2_sup_k12_sano_hires518_asl\\test_predictions_notta.npz"
+  },
+  {
+    "taxonomy": "sup_k12",
+    "model": "vit_dinov2_sup_k12_sano_hires518_asl_tta",
+    "n_labels": 14,
+    "md5_test_probs": "431086026b84212a16a3911f081152e0",
+    "test": "predictions\\reference\\sup_k12\\vit_dinov2_sup_k12_sano_hires518_asl_tta\\test_predictions.npz",
+    "val": "predictions\\reference\\sup_k12\\vit_dinov2_sup_k12_sano_hires518_asl_tta\\val_predictions.npz",
+    "source": "retina_no_github\\predictions\\runs\\training\\sup_k12\\outputs\\kaggle_sup_k12_hires_asl\\paper_sup_k12_hires_asl_outputs\\runs\\vit_dinov2_sup_k12_sano_hires518_asl\\test_predictions_tta.npz"
+  },
+  {
+    "taxonomy": "sup_k12",
+    "model": "inception_sup_k12_sano_hires448_asl_seed1_notta",
+    "n_labels": 14,
+    "md5_test_probs": "74aec53990ec2aca56b1aedd6a79b369",
+    "test": "predictions\\reference\\sup_k12\\inception_sup_k12_sano_hires448_asl_seed1_notta\\test_predictions.npz",
+    "val": "predictions\\reference\\sup_k12\\inception_sup_k12_sano_hires448_asl_seed1_notta\\val_predictions.npz",
+    "source": "retina_no_github\\predictions\\runs\\training\\sup_k12\\outputs\\kaggle_sup_k12_seeds_inc448\\seeds_outputs\\runs\\inception_sup_k12_sano_hires448_asl_seed1\\test_predictions_notta.npz"
+  },
+  {
+    "taxonomy": "sup_k12",
+    "model": "inception_sup_k12_sano_hires448_asl_seed1_tta",
+    "n_labels": 14,
+    "md5_test_probs": "69875ec541322bc158c4ed0e0967dd1e",
+    "test": "predictions\\reference\\sup_k12\\inception_sup_k12_sano_hires448_asl_seed1_tta\\test_predictions.npz",
+    "val": "predictions\\reference\\sup_k12\\inception_sup_k12_sano_hires448_asl_seed1_tta\\val_predictions.npz",
+    "source": "retina_no_github\\predictions\\runs\\training\\sup_k12\\outputs\\kaggle_sup_k12_seeds_inc448\\seeds_outputs\\runs\\inception_sup_k12_sano_hires448_asl_seed1\\test_predictions_tta.npz"
+  },
+  {
+    "taxonomy": "sup_k12",
+    "model": "inception_sup_k12_sano_hires448_asl_seed2_notta",
+    "n_labels": 14,
+    "md5_test_probs": "d385f86bb81da7519bd23c99cb4e4252",
+    "test": "predictions\\reference\\sup_k12\\inception_sup_k12_sano_hires448_asl_seed2_notta\\test_predictions.npz",
+    "val": "predictions\\reference\\sup_k12\\inception_sup_k12_sano_hires448_asl_seed2_notta\\val_predictions.npz",
+    "source": "retina_no_github\\predictions\\runs\\training\\sup_k12\\outputs\\kaggle_sup_k12_seeds_inc448\\seeds_outputs\\runs\\inception_sup_k12_sano_hires448_asl_seed2\\test_predictions_notta.npz"
+  },
+  {
+    "taxonomy": "sup_k12",
+    "model": "inception_sup_k12_sano_hires448_asl_seed2_tta",
+    "n_labels": 14,
+    "md5_test_probs": "4cae51e918a4a3eb7cc908c10590193e",
+    "test": "predictions\\reference\\sup_k12\\inception_sup_k12_sano_hires448_asl_seed2_tta\\test_predictions.npz",
+    "val": "predictions\\reference\\sup_k12\\inception_sup_k12_sano_hires448_asl_seed2_tta\\val_predictions.npz",
+    "source": "retina_no_github\\predictions\\runs\\training\\sup_k12\\outputs\\kaggle_sup_k12_seeds_inc448\\seeds_outputs\\runs\\inception_sup_k12_sano_hires448_asl_seed2\\test_predictions_tta.npz"
+  },
+  {
+    "taxonomy": "sup_k12",
+    "model": "vit_dinov2_sup_k12_sano_hires518_focal_seed1_notta",
+    "n_labels": 14,
+    "md5_test_probs": "2a13f99f88bb956e6e1502f9ca67e08d",
+    "test": "predictions\\reference\\sup_k12\\vit_dinov2_sup_k12_sano_hires518_focal_seed1_notta\\test_predictions.npz",
+    "val": "predictions\\reference\\sup_k12\\vit_dinov2_sup_k12_sano_hires518_focal_seed1_notta\\val_predictions.npz",
+    "source": "retina_no_github\\predictions\\runs\\training\\sup_k12\\outputs\\kaggle_sup_k12_seeds_vit518\\seeds_outputs\\runs\\vit_dinov2_sup_k12_sano_hires518_focal_seed1\\test_predictions_notta.npz"
+  },
+  {
+    "taxonomy": "sup_k12",
+    "model": "vit_dinov2_sup_k12_sano_hires518_focal_seed1_tta",
+    "n_labels": 14,
+    "md5_test_probs": "9cc7cec4b1d41a78fc7d00591c012714",
+    "test": "predictions\\reference\\sup_k12\\vit_dinov2_sup_k12_sano_hires518_focal_seed1_tta\\test_predictions.npz",
+    "val": "predictions\\reference\\sup_k12\\vit_dinov2_sup_k12_sano_hires518_focal_seed1_tta\\val_predictions.npz",
+    "source": "retina_no_github\\predictions\\runs\\training\\sup_k12\\outputs\\kaggle_sup_k12_seeds_vit518\\seeds_outputs\\runs\\vit_dinov2_sup_k12_sano_hires518_focal_seed1\\test_predictions_tta.npz"
+  },
+  {
+    "taxonomy": "sup_k12",
+    "model": "vit_dinov2_sup_k12_sano_hires518_focal_seed2_notta",
+    "n_labels": 14,
+    "md5_test_probs": "7b23ff32df871a58953e2ac4602417f5",
+    "test": "predictions\\reference\\sup_k12\\vit_dinov2_sup_k12_sano_hires518_focal_seed2_notta\\test_predictions.npz",
+    "val": "predictions\\reference\\sup_k12\\vit_dinov2_sup_k12_sano_hires518_focal_seed2_notta\\val_predictions.npz",
+    "source": "retina_no_github\\predictions\\runs\\training\\sup_k12\\outputs\\kaggle_sup_k12_seeds_vit518\\seeds_outputs\\runs\\vit_dinov2_sup_k12_sano_hires518_focal_seed2\\test_predictions_notta.npz"
+  },
+  {
+    "taxonomy": "sup_k12",
+    "model": "vit_dinov2_sup_k12_sano_hires518_focal_seed2_tta",
+    "n_labels": 14,
+    "md5_test_probs": "d6c4c1c723b678faaa8e77b071657981",
+    "test": "predictions\\reference\\sup_k12\\vit_dinov2_sup_k12_sano_hires518_focal_seed2_tta\\test_predictions.npz",
+    "val": "predictions\\reference\\sup_k12\\vit_dinov2_sup_k12_sano_hires518_focal_seed2_tta\\val_predictions.npz",
+    "source": "retina_no_github\\predictions\\runs\\training\\sup_k12\\outputs\\kaggle_sup_k12_seeds_vit518\\seeds_outputs\\runs\\vit_dinov2_sup_k12_sano_hires518_focal_seed2\\test_predictions_tta.npz"
+  },
+  {
+    "taxonomy": "sup_k12",
+    "model": "vit_dinov2_sup_k12_sano_hires518_focal_notta",
+    "n_labels": 14,
+    "md5_test_probs": "9446157904a4d3b884d62c54bb486bfa",
+    "test": "predictions\\reference\\sup_k12\\vit_dinov2_sup_k12_sano_hires518_focal_notta\\test_predictions.npz",
+    "val": "predictions\\reference\\sup_k12\\vit_dinov2_sup_k12_sano_hires518_focal_notta\\val_predictions.npz",
+    "source": "retina_no_github\\predictions\\runs\\training\\sup_k12\\outputs\\kaggle_sup_k12_vit518_focal\\paper_sup_k12_vit518_focal_outputs\\runs\\vit_dinov2_sup_k12_sano_hires518_focal\\test_predictions_notta.npz"
+  },
+  {
+    "taxonomy": "sup_k12",
+    "model": "vit_dinov2_sup_k12_sano_hires518_focal_tta",
+    "n_labels": 14,
+    "md5_test_probs": "bbd88d537dff2114cfc9b8a0c8c77d53",
+    "test": "predictions\\reference\\sup_k12\\vit_dinov2_sup_k12_sano_hires518_focal_tta\\test_predictions.npz",
+    "val": "predictions\\reference\\sup_k12\\vit_dinov2_sup_k12_sano_hires518_focal_tta\\val_predictions.npz",
+    "source": "retina_no_github\\predictions\\runs\\training\\sup_k12\\outputs\\kaggle_sup_k12_vit518_focal\\paper_sup_k12_vit518_focal_outputs\\runs\\vit_dinov2_sup_k12_sano_hires518_focal\\test_predictions_tta.npz"
+  }
+]

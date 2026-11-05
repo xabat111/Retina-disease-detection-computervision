@@ -1,0 +1,69 @@
+{
+  "scheme": "supervised_k12_sano",
+  "labels": [
+    "g01_aion_ode",
+    "g02_csr_dn_mhl_rpec",
+    "g03_pt",
+    "g04_erm_odp",
+    "g05_ms",
+    "g06_crs_rs",
+    "g07_brvo_crvo",
+    "g08_dr_ls",
+    "g09_ah_edn_rt",
+    "g10_armd_mya_tsln",
+    "g11_mh",
+    "g12_odc",
+    "g13_otros",
+    "sano"
+  ],
+  "prevalence": {
+    "train": {
+      "g01_aion_ode": 75,
+      "g02_csr_dn_mhl_rpec": 202,
+      "g03_pt": 11,
+      "g04_erm_odp": 77,
+      "g05_ms": 15,
+      "g06_crs_rs": 75,
+      "g07_brvo_crvo": 101,
+      "g08_dr_ls": 382,
+      "g09_ah_edn_rt": 45,
+      "g10_armd_mya_tsln": 332,
+      "g11_mh": 317,
+      "g12_odc": 282,
+      "g13_otros": 49,
+      "sano": 401
+    },
+    "val": {
+      "g01_aion_ode": 26,
+      "g02_csr_dn_mhl_rpec": 65,
+      "g03_pt": 2,
+      "g04_erm_odp": 33,
+      "g05_ms": 5,
+      "g06_crs_rs": 25,
+      "g07_brvo_crvo": 31,
+      "g08_dr_ls": 142,
+      "g09_ah_edn_rt": 15,
+      "g10_armd_mya_tsln": 119,
+      "g11_mh": 102,
+      "g12_odc": 72,
+      "g13_otros": 29,
+      "sano": 134
+    },
+    "test": {
+      "g01_aion_ode": 21,
+      "g02_csr_dn_mhl_rpec": 66,
+      "g03_pt": 4,
+      "g04_erm_odp": 29,
+      "g05_ms": 7,
+      "g06_crs_rs": 25,
+      "g07_brvo_crvo": 32,
+      "g08_dr_ls": 129,
+      "g09_ah_edn_rt": 14,
+      "g10_armd_mya_tsln": 108,
+      "g11_mh": 104,
+      "g12_odc": 91,
+      "g13_otros": 21,
+      "sano": 134
+    }
+  }
+}

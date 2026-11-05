@@ -1,0 +1,107 @@
+{
+  "scheme": "odir7_pmc9230753_no_H",
+  "k": 7,
+  "labels": [
+    "N",
+    "D",
+    "G",
+    "C",
+    "A",
+    "M",
+    "O"
+  ],
+  "cluster_map": "retina_multilabel\\experiments\\bfpc_vit_dual_taxonomy\\outputs\\taxonomy_odir7\\cluster_map.json",
+  "labels_dir": "retina_multilabel\\experiments\\bfpc_vit_dual_taxonomy\\outputs\\taxonomy_odir7\\labels",
+  "prevalence": {
+    "train": {
+      "N": {
+        "positives": 401,
+        "n": 1920
+      },
+      "D": {
+        "positives": 392,
+        "n": 1920
+      },
+      "G": {
+        "positives": 420,
+        "n": 1920
+      },
+      "C": {
+        "positives": 333,
+        "n": 1920
+      },
+      "A": {
+        "positives": 234,
+        "n": 1920
+      },
+      "M": {
+        "positives": 289,
+        "n": 1920
+      },
+      "O": {
+        "positives": 376,
+        "n": 1920
+      }
+    },
+    "val": {
+      "N": {
+        "positives": 134,
+        "n": 640
+      },
+      "D": {
+        "positives": 139,
+        "n": 640
+      },
+      "G": {
+        "positives": 123,
+        "n": 640
+      },
+      "C": {
+        "positives": 106,
+        "n": 640
+      },
+      "A": {
+        "positives": 83,
+        "n": 640
+      },
+      "M": {
+        "positives": 100,
+        "n": 640
+      },
+      "O": {
+        "positives": 125,
+        "n": 640
+      }
+    },
+    "test": {
+      "N": {
+        "positives": 134,
+        "n": 640
+      },
+      "D": {
+        "positives": 130,
+        "n": 640
+      },
+      "G": {
+        "positives": 135,
+        "n": 640
+      },
+      "C": {
+        "positives": 109,
+        "n": 640
+      },
+      "A": {
+        "positives": 76,
+        "n": 640
+      },
+      "M": {
+        "positives": 86,
+        "n": 640
+      },
+      "O": {
+        "positives": 122,
+        "n": 640
+      }
+    }
+  }
+}

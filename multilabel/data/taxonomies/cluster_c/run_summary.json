@@ -1,0 +1,62 @@
+{
+  "scheme": "cluster_c",
+  "source": "colab_archive_image_kmeans",
+  "approach": "C_supervised_image_kmeans_pca32",
+  "k": 10,
+  "labels": [
+    "cluster_ARMD_TSLN",
+    "cluster_DR",
+    "cluster_BRVO_CRVO",
+    "cluster_MYA",
+    "cluster_DN",
+    "cluster_LS_TV_AH_n4",
+    "cluster_ERM_MS_CSR_n18",
+    "cluster_ODC_CWS",
+    "cluster_ODE_AION_RS_n4",
+    "cluster_MH"
+  ],
+  "cluster_map": "retina_multilabel\\experiments\\bfpc_vit_dual_taxonomy\\outputs\\taxonomy_cluster_c\\cluster_map.json",
+  "labels_dir": "retina_multilabel\\experiments\\bfpc_vit_dual_taxonomy\\outputs\\taxonomy_cluster_c\\labels",
+  "prevalence_train": {
+    "cluster_ARMD_TSLN": {
+      "positives": 255,
+      "n": 1920
+    },
+    "cluster_DR": {
+      "positives": 376,
+      "n": 1920
+    },
+    "cluster_BRVO_CRVO": {
+      "positives": 101,
+      "n": 1920
+    },
+    "cluster_MYA": {
+      "positives": 101,
+      "n": 1920
+    },
+    "cluster_DN": {
+      "positives": 138,
+      "n": 1920
+    },
+    "cluster_LS_TV_AH_n4": {
+      "positives": 79,
+      "n": 1920
+    },
+    "cluster_ERM_MS_CSR_n18": {
+      "positives": 242,
+      "n": 1920
+    },
+    "cluster_ODC_CWS": {
+      "positives": 284,
+      "n": 1920
+    },
+    "cluster_ODE_AION_RS_n4": {
+      "positives": 119,
+      "n": 1920
+    },
+    "cluster_MH": {
+      "positives": 317,
+      "n": 1920
+    }
+  }
+}

@@ -1,0 +1,21 @@
+{
+  "approach": "C_supervised_resnet50",
+  "k": 9,
+  "silhouette": 0.30308225750923157,
+  "encoder": "supervised_resnet50_multilabel",
+  "n_columns_clustered": 36,
+  "n_rare_attached": 9,
+  "cluster_names": [
+    "cluster_MS_CRS_EDN_n6",
+    "cluster_DN_ERM_CSR_n13",
+    "cluster_CRAO_BRAO",
+    "cluster_DR_LS_AH_n4",
+    "cluster_ODE_AION",
+    "cluster_ARMD_MYA_PRH",
+    "cluster_BRVO_CRVO",
+    "cluster_RS",
+    "cluster_MH_TSLN_ODC"
+  ],
+  "cluster_map": "retina_multilabel\\experiments\\paper_compare_latent_clusters\\outputs\\clustering_C_supervised\\cluster_map.json",
+  "labels_dir": "retina_multilabel\\experiments\\paper_compare_latent_clusters\\outputs\\clustering_C_supervised\\labels"
+}

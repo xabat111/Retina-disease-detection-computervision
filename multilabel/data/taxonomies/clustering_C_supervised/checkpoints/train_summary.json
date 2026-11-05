@@ -1,0 +1,9 @@
+{
+  "checkpoint": "retina_multilabel\\experiments\\paper_compare_latent_clusters\\outputs\\clustering_C_supervised\\checkpoints\\supervised_encoder.pt",
+  "n_images": 1920,
+  "n_labels": 45,
+  "final_bce": 0.038534350285772234,
+  "epochs": 6,
+  "img_size": 224,
+  "device": "cpu"
+}

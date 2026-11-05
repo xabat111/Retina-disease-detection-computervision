@@ -1,0 +1,35 @@
+[build-system]
+requires = ["setuptools>=61"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "retina-multilabel"
+version = "1.0.0"
+description = "Multilabel retinal disease classification on RFMiD with ViT-L (DINOv2 / RETFound)"
+requires-python = ">=3.10"
+dependencies = [
+    "numpy==2.2.6",
+    "pandas==2.3.1",
+    "scipy==1.15.3",
+    "scikit-learn==1.7.0",
+    "matplotlib==3.10.7",
+    "pillow==10.4.0",
+    "tqdm==4.67.1",
+    "PyYAML==6.0.2",
+    "torch==2.12.0",
+    "torchvision==0.27.0",
+    "timm==1.0.30",
+    "huggingface-hub==0.33.4",
+    "safetensors==0.5.3",
+]
+
+[project.optional-dependencies]
+app = ["streamlit==1.65.0", "plotly==6.8.0"]
+dev = ["pytest==9.1.1"]
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.pytest.ini_options]
+pythonpath = ["src"]
+testpaths = ["tests"]

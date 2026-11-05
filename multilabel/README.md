@@ -131,19 +131,19 @@ Secrets come from Colab userdata / env — **no tokens are hardcoded**.
 
 The app works (verified end to end: ensemble loading, prediction and Grad-CAM on test images). It needs two things that are **not** in git:
 
-1. **Checkpoints** (~1.16 GB each; GitHub file limit 100 MB). Once published, download the three uniquely named `.pt` assets from the GitHub Release (or your Hugging Face model repo) and place each in its matching run folder:
+1. **Checkpoints** (~1.16 GB each; stored on [Hugging Face](https://huggingface.co/XabatarinAI/Modelos_retina_multilabel), not in Git). The three deployed ODIR-7 files are at the root of that model repo. From the root of this GitHub repository, download them into the app's checkpoint directory:
 
 ```
-checkpoints/final_20261030/vit_residual_attn_odir7_v2_518/vit_residual_attn_odir7_v2_518.pt
-checkpoints/final_20261030/vit_residual_attn_odir7_v2/vit_residual_attn_odir7_v2.pt
-checkpoints/final_20261030/vit_residual_attn_odir7_v3fundus/vit_residual_attn_odir7_v3fundus.pt
+hf download XabatarinAI/Modelos_retina_multilabel --type model --include vit_residual_attn_odir7_v2_518.pt --local-dir multilabel\checkpoints\final_20261030
+hf download XabatarinAI/Modelos_retina_multilabel --type model --include vit_residual_attn_odir7_v2.pt --local-dir multilabel\checkpoints\final_20261030
+hf download XabatarinAI/Modelos_retina_multilabel --type model --include vit_residual_attn_odir7_v3fundus.pt --local-dir multilabel\checkpoints\final_20261030
 ```
 
-   The ensemble manifest is versioned at `configs/ensemble_odir7.json`. Reference `test_predictions.npz` files are versioned at `predictions/reference/odir7/<run>/`.
+   The ensemble manifest is versioned at `multilabel/configs/ensemble_odir7.json`. Reference `test_predictions.npz` files are versioned at `multilabel/predictions/reference/odir7/<run>/`. The app and Grad-CAM script use paths relative to their project files.
 
 2. **RFMiD test images**, downloaded with `notebooks/00_download_data.ipynb`. By default, the app looks for them at `../../Test_Set/Test_Set/Test` relative to this project directory. Set `RETINA_DATA_ROOT` to the RFMiD dataset root to use another location.
 
-The app's paths are anchored to the project files, so it can be launched from any current working directory. Checkpoints remain local and are ignored by Git.
+The model repo also contains the other experimental checkpoints. Review its model card and each source model's license before using or redistributing those weights. In particular, the RETFound-based model is subject to **CC BY-NC 4.0**; the ensemble inherits that non-commercial restriction. Checkpoints remain local and are ignored by Git.
 
 ```bash
 pip install -e ".[app]"

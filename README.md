@@ -38,4 +38,4 @@ This repository contains two complementary RFMiD research projects:
 
 ## Data and model files
 
-RFMiD images and large model checkpoints are not stored in Git. Each project README describes its data setup, model requirements, commands, and licensing notes. The multilabel checkpoints are ignored by Git and must be obtained separately to run the full app.
+RFMiD images and large model checkpoints are not stored in Git. Each project README describes its data setup, model requirements, commands, and licensing notes. [Multilabel model checkpoints are hosted on Hugging Face](https://huggingface.co/XabatarinAI/Modelos_retina_multilabel); see [`multilabel/README.md`](multilabel/README.md) for download instructions. The RETFound-based weights have a **CC BY-NC 4.0** non-commercial restriction.

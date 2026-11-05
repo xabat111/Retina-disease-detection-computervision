@@ -19,17 +19,17 @@
     {
       "run": "vit_residual_attn_odir7_v2_518",
       "img_size": 518,
-      "checkpoint": "vit_residual_attn_odir7_v2_518/vit_residual_attn_odir7_v2_518.pt"
+      "checkpoint": "vit_residual_attn_odir7_v2_518.pt"
     },
     {
       "run": "vit_residual_attn_odir7_v2",
       "img_size": 392,
-      "checkpoint": "vit_residual_attn_odir7_v2/vit_residual_attn_odir7_v2.pt"
+      "checkpoint": "vit_residual_attn_odir7_v2.pt"
     },
     {
       "run": "vit_residual_attn_odir7_v3fundus",
       "img_size": 392,
-      "checkpoint": "vit_residual_attn_odir7_v3fundus/vit_residual_attn_odir7_v3fundus.pt"
+      "checkpoint": "vit_residual_attn_odir7_v3fundus.pt"
     }
   ]
 }

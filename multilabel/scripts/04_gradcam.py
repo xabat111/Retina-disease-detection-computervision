@@ -96,10 +96,13 @@ def main():
     for tax, m in MODELS.items():
         # search checkpoint
         cands = [
+            ckpt_dir / f"{m['run']}.pt",
             ckpt_dir / m["run"] / f"{m['run']}.pt",
             ckpt_dir / m["run"] / "checkpoint.pt",
+            ckpt_dir / "final_20261030" / f"{m['run']}.pt",
             ckpt_dir / "final_20261030" / m["run"] / f"{m['run']}.pt",
             ckpt_dir / "final_20261030" / m["run"] / "checkpoint.pt",
+            ROOT / "checkpoints" / f"{m['run']}.pt",
             ROOT / "checkpoints" / m["run"] / f"{m['run']}.pt",
             ROOT / "checkpoints" / m["run"] / "checkpoint.pt",
         ]

@@ -36,3 +36,5 @@ paper/*.fls
 paper/*.synctex.gz
 results/gradcam/
 results/_runtime_models.pkl
+
+/multilabel/paper/figures/

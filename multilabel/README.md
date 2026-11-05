@@ -11,6 +11,8 @@ Multilabel fundus screening on **RFMiD** with ViT-L/14 (DINOv2 / RETFound) and a
 
 Full tables: [`results/COMPARATIVA_FINAL.md`](results/COMPARATIVA_FINAL.md). Paper PDF: [`paper/paper_v3_long_20261102.pdf`](paper/paper_v3_long_20261102.pdf).
 
+[Watch the app demo](Demo.mp4) (MP4, 85 MB).
+
 ## ODIR-7 test metrics
 
 The following results are on the 640-image TEST split. Per-label thresholds and model selection were fixed using VAL only. Model-level metrics are macro averages; F2 confidence intervals use 2,000 image-level bootstrap resamples.

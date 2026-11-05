@@ -5,7 +5,7 @@ This repository contains two complementary RFMiD research projects:
 - [`clasificacion/`](clasificacion/) — binary disease-risk classification (`Disease_Risk`), with recall-focused training, ensembles, threshold selection, and evaluation. See its [README](clasificacion/README.md) and [workflow guide](clasificacion/docs/WORKFLOW.md).
 - [`multilabel/`](multilabel/) — multilabel fundus classification across ODIR-7, Cluster-C, and Sup-K12 taxonomies, including ViT models, a Streamlit demo, Grad-CAM, and paper results. See its [README](multilabel/README.md).
 
-[Watch the multilabel app demo](multilabel/Demo.mp4) (MP4).
+[Watch the multilabel app demo](Demo.mp4) (MP4).
 
 ## Folder guide
 

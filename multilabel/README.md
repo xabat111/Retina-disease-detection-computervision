@@ -11,7 +11,7 @@ Multilabel fundus screening on **RFMiD** with ViT-L/14 (DINOv2 / RETFound) and a
 
 Full tables: [`results/COMPARATIVA_FINAL.md`](results/COMPARATIVA_FINAL.md). Paper PDF: [`paper/paper_v3_long_20261102.pdf`](paper/paper_v3_long_20261102.pdf).
 
-[Watch the app demo](Demo.mp4) (MP4, 85 MB).
+[Watch the app demo](../Demo.mp4) (MP4, 85 MB).
 
 ## ODIR-7 test metrics
 

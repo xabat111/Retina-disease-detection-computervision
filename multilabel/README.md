@@ -11,6 +11,33 @@ Multilabel fundus screening on **RFMiD** with ViT-L/14 (DINOv2 / RETFound) and a
 
 Full tables: [`results/COMPARATIVA_FINAL.md`](results/COMPARATIVA_FINAL.md). Paper PDF: [`paper/paper_v3_long_20261102.pdf`](paper/paper_v3_long_20261102.pdf).
 
+## ODIR-7 test metrics
+
+The following results are on the 640-image TEST split. Per-label thresholds and model selection were fixed using VAL only. Model-level metrics are macro averages; F2 confidence intervals use 2,000 image-level bootstrap resamples.
+
+### Deployed ensemble members
+
+| Model | Recall | Precision | F1 | F2 [95% CI] | AUROC | mAP |
+|---|---:|---:|---:|---:|---:|---:|
+| ViT-RA v2 518 | 0.893 | 0.595 | 0.706 | 0.812 [0.792, 0.830] | 0.940 | 0.817 |
+| ViT-RA v2 | 0.904 | 0.582 | 0.690 | 0.814 [0.794, 0.831] | 0.940 | 0.815 |
+| ViT-RA RETFound v3 | 0.853 | 0.601 | 0.695 | 0.787 [0.764, 0.809] | 0.931 | 0.814 |
+| **3-model ensemble** | **0.913** | **0.622** | **0.729** | **0.835 [0.817, 0.852]** | **0.954** | **0.849** |
+
+### Per-class ensemble metrics
+
+Thresholds were selected per label on VAL; the table reports TEST point estimates. AP is average precision.
+
+| Label | Disease | TEST positives | VAL threshold | Recall | Precision | F1 | AUROC | AP |
+|---|---|---:|---:|---:|---:|---:|---:|---:|
+| N | Normal / healthy | 134 | 0.14 | 0.993 | 0.652 | 0.899 | 0.985 | 0.945 |
+| D | Diabetic retinopathy | 130 | 0.26 | 0.931 | 0.766 | 0.892 | 0.978 | 0.944 |
+| G | Glaucoma-suspect / optic disc | 135 | 0.20 | 0.844 | 0.421 | 0.703 | 0.888 | 0.746 |
+| C | Media opacity | 109 | 0.21 | 0.963 | 0.556 | 0.840 | 0.968 | 0.892 |
+| A | Age-related macular degeneration | 76 | 0.19 | 0.921 | 0.424 | 0.746 | 0.929 | 0.641 |
+| M | Myopia | 86 | 0.33 | 0.942 | 0.794 | 0.908 | 0.985 | 0.928 |
+| O | Other | 122 | 0.38 | 0.795 | 0.740 | 0.784 | 0.947 | 0.850 |
+
 ## Layout
 
 ```
@@ -102,18 +129,19 @@ Secrets come from Colab userdata / env — **no tokens are hardcoded**.
 
 The app works (verified end to end: ensemble loading, prediction and Grad-CAM on test images). It needs two things that are **not** in git:
 
-1. **Checkpoints** (~1.16 GB each; GitHub file limit 100 MB). Download them from the Release / Hugging Face links (TODO) and place them as:
+1. **Checkpoints** (~1.16 GB each; GitHub file limit 100 MB). Once published, download the three uniquely named `.pt` assets from the GitHub Release (or your Hugging Face model repo) and place each in its matching run folder:
 
 ```
-checkpoints/final_20261030/manifest.json
-checkpoints/final_20261030/vit_residual_attn_odir7_v2_518/checkpoint.pt   (+ test_predictions.npz)
-checkpoints/final_20261030/vit_residual_attn_odir7_v2/checkpoint.pt       (+ test_predictions.npz)
-checkpoints/final_20261030/vit_residual_attn_odir7_v3fundus/checkpoint.pt (+ test_predictions.npz)
+checkpoints/final_20261030/vit_residual_attn_odir7_v2_518/vit_residual_attn_odir7_v2_518.pt
+checkpoints/final_20261030/vit_residual_attn_odir7_v2/vit_residual_attn_odir7_v2.pt
+checkpoints/final_20261030/vit_residual_attn_odir7_v3fundus/vit_residual_attn_odir7_v3fundus.pt
 ```
 
-   The `test_predictions.npz` of each member is also in `predictions/reference/odir7/<run>/`.
+   The ensemble manifest is versioned at `configs/ensemble_odir7.json`. Reference `test_predictions.npz` files are versioned at `predictions/reference/odir7/<run>/`.
 
-2. **RFMiD test images**, downloaded with `notebooks/00_download_data.ipynb`. The app reads them from `../Test_Set/Test_Set/Test` (relative to the repo, see `app/settings.py`).
+2. **RFMiD test images**, downloaded with `notebooks/00_download_data.ipynb`. By default, the app looks for them at `../../Test_Set/Test_Set/Test` relative to this project directory. Set `RETINA_DATA_ROOT` to the RFMiD dataset root to use another location.
+
+The app's paths are anchored to the project files, so it can be launched from any current working directory. Checkpoints remain local and are ignored by Git.
 
 ```bash
 pip install -e ".[app]"
@@ -121,7 +149,7 @@ streamlit run app/app.py --server.port 8502
 python scripts/04_gradcam.py
 ```
 
-**Released weights for the other taxonomies.** Besides the three ODIR-7 members, the Release includes Cluster-C (`vit_residual_attn_cluster_c_v2`, `vit_dinov2_cluster_c_v3fundus`, `vit_residual_attn_cluster_c_v3fundus_518`) and Sup-K12 (`inception_sup_k12_sano_hires448_asl`, `inception_sup_k12_sano_hires448_asl_seed1`). The checkpoint of `vit_residual_attn_cluster_c_v2_518` was lost; its predictions are kept in `predictions/reference/`, so every reported metric is still reproducible, and the model can be retrained with `notebooks/04_train_vit_fundus_cluster_c.ipynb` and its config.
+**Other local checkpoints.** The local checkpoint archive also contains Cluster-C (`vit_residual_attn_cluster_c_v2`, `vit_dinov2_cluster_c_v3fundus`, `vit_residual_attn_cluster_c_v3fundus_518`) and Sup-K12 (`inception_sup_k12_sano_hires448_asl`, `inception_sup_k12_sano_hires448_asl_seed1`) runs. The checkpoint of `vit_residual_attn_cluster_c_v2_518` was lost; its predictions are kept in `predictions/reference/`, so every reported metric is still reproducible, and the model can be retrained with `notebooks/04_train_vit_fundus_cluster_c.ipynb` and its config.
 | Checkpoint | img | Init | Config |
 |---|---|---|---|
 | `vit_residual_attn_odir7_v2_518` | 518 | DINOv2 | [`configs/vit_residual_attn_odir7_v2_518.yaml`](configs/vit_residual_attn_odir7_v2_518.yaml) |
@@ -129,6 +157,13 @@ python scripts/04_gradcam.py
 | `vit_residual_attn_odir7_v3fundus` | 392 | RETFound (CC BY-NC) | [`configs/vit_residual_attn_odir7_v3fundus.yaml`](configs/vit_residual_attn_odir7_v3fundus.yaml) |
 
 Optional Git LFS tracking for local clones is declared in [`.gitattributes`](.gitattributes); the recommended distribution channel remains HF or a Release.
+
+## Future work
+
+- **Optimize the recall/precision trade-off:** compare per-class thresholds, F-beta objectives, and constrained or Pareto-based operating points to retain high recall while improving precision, specificity, and F1. Fit and select operating points on validation data only; keep TEST untouched for final reporting.
+- **Calibrate probabilities:** evaluate temperature scaling or other calibration methods on VAL, then report Brier score, expected calibration error, and reliability diagrams.
+- **Test generalization:** evaluate on an independent retinal dataset and assess performance under image-quality and acquisition shifts before considering broader use.
+- **Improve reliability and efficiency:** quantify uncertainty and out-of-distribution behavior, and benchmark smaller or optimized models for inference cost without sacrificing clinically important recall.
 
 ## Paper
 

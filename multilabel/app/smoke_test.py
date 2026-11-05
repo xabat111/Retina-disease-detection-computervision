@@ -14,7 +14,7 @@ t0 = time.time(); dep = load_deployed_model(); print("load s", round(time.time()
 print(dep.test_metrics.round(3).to_string(), "unreliable:", dep.unreliable_labels, flush=True)
 cat = load_sample_catalog(); print("catalog", len(cat.identifiers), flush=True)
 lab = pd.read_csv(settings.TEST_LABELS_CSV)
-ref = np.mean([np.load(settings.CHECKPOINT_DIR / m / "test_predictions.npz")["probabilities"] for m in
+ref = np.mean([np.load(settings.TEST_PREDICTIONS_DIR / m / "test_predictions.npz")["probabilities"] for m in
                ["vit_residual_attn_odir7_v2_518", "vit_residual_attn_odir7_v2", "vit_residual_attn_odir7_v3fundus"]], 0)
 rows = []
 for i in [int(a) for a in sys.argv[1:]] or [0, 110, 300]:

@@ -2,7 +2,7 @@
 
 Checkpoints and RFMiD images are NOT in git. Set:
   RETINA_DATA_ROOT  -> RFMiD root (Training_Set / Evaluation_Set / Test_Set)
-  RETINA_CKPT_DIR   -> folder with per-run subdirs containing checkpoint.pt
+  RETINA_CKPT_DIR   -> final checkpoint directory (default: checkpoints/final_20261030)
                        (default: checkpoints/ or $RETINA_CKPT_DIR)
 Or pass --ckpt-dir / --data-root / --img-dir.
 """
@@ -26,20 +26,19 @@ def resolve_paths(args):
     data_root = Path(
         args.data_root
         or os.environ.get("RETINA_DATA_ROOT")
-        or ""
+        or ROOT.parents[1]
     )
     ckpt_dir = Path(
         args.ckpt_dir
         or os.environ.get("RETINA_CKPT_DIR")
-        or (ROOT / "checkpoints")
+        or (ROOT / "checkpoints" / "final_20261030")
     )
     img_dir = Path(args.img_dir) if args.img_dir else None
     if img_dir is None and data_root:
         # RFMiD layout variants
         for cand in [
-            data_root / "Test_Set" / "Test",
             data_root / "Test_Set" / "Test_Set" / "Test",
-            ROOT.parent / "Test_Set" / "Test_Set" / "Test",
+            data_root / "Test_Set" / "Test",
         ]:
             if cand.is_dir():
                 img_dir = cand
@@ -51,7 +50,7 @@ def main():
     ap = argparse.ArgumentParser(description=__doc__)
     ap.add_argument("--data-root", type=Path, default=None)
     ap.add_argument("--ckpt-dir", type=Path, default=None,
-                    help="Directory containing run folders with checkpoint.pt "
+                    help="Directory containing per-run checkpoint files "
                          "(e.g. checkpoints/final_20261030 or a HF download root)")
     ap.add_argument("--img-dir", type=Path, default=None)
     ap.add_argument("--out", type=Path, default=ROOT / "results" / "gradcam")
@@ -97,9 +96,12 @@ def main():
     for tax, m in MODELS.items():
         # search checkpoint
         cands = [
+            ckpt_dir / m["run"] / f"{m['run']}.pt",
             ckpt_dir / m["run"] / "checkpoint.pt",
+            ckpt_dir / "final_20261030" / m["run"] / f"{m['run']}.pt",
             ckpt_dir / "final_20261030" / m["run"] / "checkpoint.pt",
-            ROOT / "checkpoints" / "final_20261030" / m["run"] / "checkpoint.pt",
+            ROOT / "checkpoints" / m["run"] / f"{m['run']}.pt",
+            ROOT / "checkpoints" / m["run"] / "checkpoint.pt",
         ]
         ck = next((c for c in cands if c.is_file()), None)
         m["ck"] = ck

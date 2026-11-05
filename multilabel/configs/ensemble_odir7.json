@@ -1,0 +1,35 @@
+{
+  "labels": ["N", "D", "G", "C", "A", "M", "O"],
+  "label_display": {
+    "N": "Normal / healthy",
+    "D": "Diabetic retinopathy",
+    "G": "Glaucoma-suspect / optic disc",
+    "C": "Media opacity (cataract proxy)",
+    "A": "AMD",
+    "M": "Myopia",
+    "O": "Other"
+  },
+  "thresholds": [0.14, 0.26, 0.2, 0.21, 0.19, 0.33, 0.38],
+  "threshold_criterion": "fbeta2 on VAL",
+  "preprocessing": {
+    "mean": [0.485, 0.456, 0.406],
+    "std": [0.229, 0.224, 0.225]
+  },
+  "members": [
+    {
+      "run": "vit_residual_attn_odir7_v2_518",
+      "img_size": 518,
+      "checkpoint": "vit_residual_attn_odir7_v2_518/vit_residual_attn_odir7_v2_518.pt"
+    },
+    {
+      "run": "vit_residual_attn_odir7_v2",
+      "img_size": 392,
+      "checkpoint": "vit_residual_attn_odir7_v2/vit_residual_attn_odir7_v2.pt"
+    },
+    {
+      "run": "vit_residual_attn_odir7_v3fundus",
+      "img_size": 392,
+      "checkpoint": "vit_residual_attn_odir7_v3fundus/vit_residual_attn_odir7_v3fundus.pt"
+    }
+  ]
+}

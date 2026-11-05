@@ -1,13 +1,14 @@
 ﻿"""app_v2 core: odir7 3-model DINOv2 residual-attention ensemble (final_20261030)."""
 from __future__ import annotations
 import json, sys
-from pathlib import Path
 import numpy as np, torch
 from PIL import Image
 
-ROOT = Path(__file__).resolve().parents[1]
-CKPT_DIR = ROOT / "checkpoints" / "final_20261030"
-MANIFEST = json.loads((CKPT_DIR / "manifest.json").read_text())
+from app import settings
+
+ROOT = settings.PROJECT_ROOT
+CKPT_DIR = settings.CHECKPOINT_DIR
+MANIFEST = json.loads(settings.MANIFEST_PATH.read_text(encoding="utf-8"))
 for p in (ROOT / "src", ROOT / "training" / "dual_tax"):
     if str(p) not in sys.path: sys.path.insert(0, str(p))
 import retina_multilabel.model as rm

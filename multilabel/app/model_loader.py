@@ -34,7 +34,7 @@ def _auroc(y: np.ndarray, s: np.ndarray) -> float:
 def compute_test_metrics(manifest: dict, thresholds: np.ndarray) -> pd.DataFrame:
     """Precision/recall/AUROC por clase del ensemble en TEST (npz guardados + clustered_test.csv)."""
     labels = pd.read_csv(settings.TEST_LABELS_CSV)
-    prob = np.mean([np.load(settings.CHECKPOINT_DIR / m["run"] / "test_predictions.npz")["probabilities"]
+    prob = np.mean([np.load(settings.TEST_PREDICTIONS_DIR / m["run"] / "test_predictions.npz")["probabilities"]
                     for m in manifest["members"]], 0)
     rows = {}
     for j, label in enumerate(settings.LABEL_NAMES):
